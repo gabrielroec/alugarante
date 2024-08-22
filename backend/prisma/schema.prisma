@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoPessoa {
+  FISICA
+  JURIDICA
+}
+
+enum EstadoCivil {
+  SOLTEIRO
+  CASADO
+  DIVORCIADO
+  VIUVO
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  email        String   @unique
+  telefone     String
+  senha        String
+  role         Role     @default(USER)
+}
+
+model Proprietario{
+  id Int @id @default(autoincrement())
+  tipoPessoa TipoPessoa
+  cnpj String?
+  razaoSocial String?
+  nome String
+  email String
+  telefone String
+  nacionalidade String
+  naturalidade String
+  estadoCivil EstadoCivil
+  dataNascimento DateTime
+  cpf String
+  rg String
+  orgaoExpeditor String
+  conjuge Conjuge? @relation(fields: [conjugeId], references: [id])
+  conjugeId Int?
+  endereco Endereco @relation(fields: [enderecoId], references: [id])
+  enderecoId     Int
+  documentos Documento[]
+
+  Card Card[]
+}
+
+model Conjuge{
+  id Int @id @default(autoincrement())
+  nome String
+  email String
+  telefone String
+  nacionalidade String
+  naturalidade String
+  dataNascimento DateTime
+  cpf String
+  rg String
+  orgaoExpeditor String
+  
+  proprietario Proprietario[]
+}
+
+model Endereco{
+  id Int @id @default(autoincrement())
+  cep String
+  estado String
+  cidade String
+  bairro String
+  endereco String
+  numero String
+  complemento String?
+
+  Proprietario Proprietario[]
+
+  Imovel Imovel[]
+
+  Locatario Locatario[]
+}
+
+model Documento{
+  id Int @id @default(autoincrement())
+  tipo String
+  url String
+
+  Proprietario Proprietario[]
+
+  Imovel Imovel[]
+
+  Locatario Locatario[]
+}
+
+model Imovel{
+  id Int @id @default(autoincrement())
+  finalidade String
+  tipo String
+  valorAluguel Float
+  valorCondominio Float
+  valorIptu Float
+  aguaInclusa Boolean
+  gasIncluso Boolean
+  adminCondominio String
+  telefoneAdminCOndominio String
+  endereco Endereco @relation(fields:[enderecoId], references:[id])
+  enderecoId Int
+  documentos Documento[]
+
+  Card Card[]
+}
+
+model Locatario {
+  id             Int         @id @default(autoincrement())
+  tipoPessoa     TipoPessoa
+  cnpj           String?
+  razaoSocial    String?
+  nome           String
+  email          String
+  telefone       String
+  nacionalidade  String
+  naturalidade   String
+  estadoCivil    EstadoCivil
+  dataNascimento DateTime
+  cpf            String
+  rg             String
+  orgaoExpeditor String
+  endereco       Endereco    @relation(fields: [enderecoId], references: [id])
+  enderecoId     Int
+  documentos     Documento[]
+
+  Card Card[]
+}
+
+model Card {
+  id             Int         @id @default(autoincrement())
+  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id])
+  proprietarioId Int
+  imovel         Imovel      @relation(fields: [imovelId], references: [id])
+  imovelId       Int
+  locatario      Locatario   @relation(fields: [locatarioId], references: [id])
+  locatarioId    Int
+  pipeline       Pipeline    @relation(fields: [pipelineId], references: [id])
+  pipelineId     Int
+  etapa          Etapa       @relation(fields: [etapaId], references: [id])
+  etapaId        Int
+  situacao       String
+}
+
+model Pipeline {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  etapas       Etapa[]
+
+  Card Card[]
+}
+
+model Etapa {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  pipeline     Pipeline @relation(fields: [pipelineId], references: [id])
+  pipelineId   Int
+  cards        Card[]
+}
