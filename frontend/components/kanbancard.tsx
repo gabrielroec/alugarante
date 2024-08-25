@@ -14,7 +14,7 @@ const KanbanCard = ({ card, fromBoardId, pipelineName }: any) => {
   return (
     <div
       ref={drag as unknown as React.RefObject<HTMLDivElement>}
-      className={`p-4 bg-white rounded-lg shadow-md mb-2 ${isDragging ? "opacity-50" : ""}`}
+      className={`p-4 bg-white rounded-lg mb-2 ${isDragging ? "transition-all ease-in-out opacity-50 scale-90" : ""}`}
     >
       <h3 className="font-semibold">{card.title}</h3>
       <p className="text-gray-600">{card.details}</p>
