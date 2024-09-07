@@ -12,6 +12,8 @@ interface KanbanContextType {
   moveCard: (pipelineName: PipelineKeys, fromBoardId: string, toBoardId: string, cardId: string) => void;
   updateBoardName: (boardId: string, newName: string) => void;
   addBoard: (pipelineName: PipelineKeys, newBoardName: string) => void;
+  updateCard: (pipelineName: PipelineKeys, boardId: string, updatedCard: Card) => void;
+  deleteCard: (pipelineName: PipelineKeys, boardId: string, cardId: string) => void;
 }
 
 const KanbanContext = createContext<KanbanContextType | null>(null);
@@ -22,12 +24,19 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       {
         id: "1",
         name: "Interessados",
-        cards: [{ id: "card-1", title: "Card 1", details: "Detalhes do card 1" }],
+        cards: [
+          { id: "card-1", title: "Card 1", details: "Detalhes do card 1", status: "Em processo" },
+          { id: "card-2", title: "Card 2", details: "Detalhes do card 1", status: "Em processo" },
+          { id: "card-3", title: "Card 3", details: "Detalhes do card 1", status: "Em processo" },
+          { id: "card-4", title: "Card 4", details: "Detalhes do card 1", status: "Em processo" },
+          { id: "card-5", title: "Card 5", details: "Detalhes do card 1", status: "Em processo" },
+        ],
       },
+
       {
         id: "2",
         name: "Em análise",
-        cards: [{ id: "card-2", title: "Card 2", details: "Detalhes do card 2" }],
+        cards: [{ id: "card-6", title: "Card 6", details: "Detalhes do card 2", status: "Em processo" }],
       },
     ],
     "Contratos ativos": [
@@ -86,7 +95,41 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const addCard = (pipelineName: PipelineKeys, boardId: string, card: Card) => {
     setPipelines((prevPipelines) => {
       const updatedPipeline = prevPipelines[pipelineName].map((board) =>
-        board.id === boardId ? { ...board, cards: [...board.cards, card] } : board
+        board.id === boardId
+          ? {
+              ...board,
+              cards: [
+                ...board.cards,
+                {
+                  ...card,
+                  status: pipelineName === "Início" ? "Em processo" : card.status, // Define a situação automaticamente na adição
+                },
+              ],
+            }
+          : board
+      );
+      return { ...prevPipelines, [pipelineName]: updatedPipeline };
+    });
+  };
+
+  const updateCard = (pipelineName: PipelineKeys, boardId: string, updatedCard: Card) => {
+    setPipelines((prevPipelines) => {
+      const updatedPipeline = prevPipelines[pipelineName].map((board) =>
+        board.id === boardId
+          ? {
+              ...board,
+              cards: board.cards.map((card) => (card.id === updatedCard.id ? updatedCard : card)),
+            }
+          : board
+      );
+      return { ...prevPipelines, [pipelineName]: updatedPipeline };
+    });
+  };
+
+  const deleteCard = (pipelineName: PipelineKeys, boardId: string, cardId: string) => {
+    setPipelines((prevPipelines) => {
+      const updatedPipeline = prevPipelines[pipelineName].map((board) =>
+        board.id === boardId ? { ...board, cards: board.cards.filter((card) => card.id !== cardId) } : board
       );
       return { ...prevPipelines, [pipelineName]: updatedPipeline };
     });
@@ -159,7 +202,9 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <KanbanContext.Provider value={{ selectedPipeline, setSelectedPipeline, pipelines, addCard, moveCard, updateBoardName, addBoard }}>
+    <KanbanContext.Provider
+      value={{ selectedPipeline, setSelectedPipeline, pipelines, addCard, moveCard, updateBoardName, addBoard, updateCard, deleteCard }}
+    >
       {children}
     </KanbanContext.Provider>
   );

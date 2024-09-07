@@ -2,6 +2,7 @@ export interface Card {
   id: string;
   title: string;
   details: string;
+  status?: string;
 }
 
 export interface Board {
