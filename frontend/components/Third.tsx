@@ -4,9 +4,9 @@ import thirdImg from "../assets/Third.svg";
 
 const Third = () => {
   return (
-    <div className="pt-[100px] bg-gradient-to-t from-[#F3F6ED] to-[#fff]">
+    <div className="pt-[100px]  bg-gradient-to-t from-[#F3F6ED] to-[#fff] rounded-[40px]">
       <div className="container flex items-center justify-between max-lg:flex-col">
-        <div className="w-[80%]">
+        <div className="">
           <h1 className="text-4xl font-bold mb-3 max-lg:text-center">
             Como a <span className="text-[#003853">Alu</span>
             <span className="text-[#87A644]">garante</span> funciona?
@@ -114,7 +114,7 @@ const Third = () => {
             </div>
           </div>
         </div>
-        <Image src={thirdImg} alt="alugarante" className="w-[38%] max-lg:w-full" />
+        <Image src={thirdImg} alt="alugarante" className="max-lg:w-full" />
       </div>
     </div>
   );

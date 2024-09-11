@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 const Hero = () => {
   return (
     <Fragment>
-      <section className="bg-gradient-to-t from-[#F3F6ED] to-[#fff] py-16 max-md:flex-col relative">
+      <section className="bg-gradient-to-t from-[#F3F6ED] to-[#fff] py-16 max-md:flex-col relative rounded-[40px]">
         <div className="container mx-auto px-4 flex flex-col items-center md:flex-row">
           <div className="text-left w-1/2 max-md:w-full max-md:text-center">
             <h1 className="text-5xl font-bold mb-4 text-[#0D0D0D]">Administre a locação do seu imóvel, nós garantimos o aluguel.</h1>
