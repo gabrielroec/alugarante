@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import ClickSvg from "../assets/click.svg";
 import ClickSvgIcon from "@/assets/ClickIcon";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 // Arrays de opções para os selects
 const estados = ["São Paulo", "Rio de Janeiro", "Minas Gerais", "Bahia", "Paraná", "Santa Catarina"];
@@ -16,6 +17,7 @@ export default function FirstForm() {
   const [coberturaFurto, setCoberturaFurto] = useState(false);
   const [assistencia24h, setAssistencia24h] = useState(false);
   const [valorMensal, setValorMensal] = useState(99.9);
+  const router = useRouter();
 
   // Função para calcular o valor com base nas escolhas
   const calcularValorMensal = () => {
@@ -52,9 +54,8 @@ export default function FirstForm() {
 
   // Função para lidar com o submit
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Prevenir o comportamento padrão de recarregar a página
+    e.preventDefault();
 
-    // Capturar os dados selecionados pelo usuário
     const dadosFormulario = {
       estadoSelecionado,
       tipoImovelSelecionado,
@@ -64,17 +65,14 @@ export default function FirstForm() {
       valorMensal,
     };
 
-    // Aqui você pode enviar os dados para uma API, salvar no local storage, ou fazer qualquer outra ação
-    console.log("Dados do formulário:", dadosFormulario);
+    // Salvar os dados no localStorage
+    localStorage.setItem("dadosFormulario", JSON.stringify(dadosFormulario));
 
-    // Exemplo de envio para uma API:
-    // fetch('/api/submit', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(dadosFormulario),
-    // });
+    // Garantir que os dados estão salvos antes de redirecionar
+    setTimeout(() => {
+      // Redirecionar para a próxima página
+      router.push("/formularioparteum");
+    }, 100); // Pode ser um pequeno timeout para garantir que o armazenamento foi bem-sucedido
   };
 
   return (
@@ -144,7 +142,6 @@ export default function FirstForm() {
         }`}
         onClick={() => {
           setCoberturaFurto(!coberturaFurto);
-          console.log("Cobertura contra furto/roubo:", !coberturaFurto);
         }}
       >
         <div className="flex items-center justify-between">
@@ -166,7 +163,6 @@ export default function FirstForm() {
         }`}
         onClick={() => {
           setAssistencia24h(!assistencia24h);
-          console.log("Assistência 24h:", !assistencia24h);
         }}
       >
         <div className="flex items-center justify-between">
