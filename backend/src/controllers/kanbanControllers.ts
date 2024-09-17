@@ -150,19 +150,9 @@ export const moveCardToColumn = async (req: Request, res: Response) => {
 };
 
 export const createCard = async (req: Request, res: Response) => {
-  let { imovel, proprietario, imovelDetalhes, locatario } = req.body;
-  // console.log(req.body);
-  console.log(req.body.imovel);
-  console.log(req.body.proprietario);
-  console.log(req.body.imovelDetalhes);
-  console.log(req.body.locatario);
   try {
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
     const board = await prisma.board.findFirst({
-      include: {
-        columns: true,
-      },
+      include: { columns: true },
     });
 
     if (!board || board.columns.length === 0) {
@@ -170,126 +160,282 @@ export const createCard = async (req: Request, res: Response) => {
     }
 
     const primeiraColuna = board.columns[0];
-    // console.log(files);
 
     const novoCard = await prisma.card.create({
       data: {
-        columnId: primeiraColuna.id,
-        imovel: {
-          create: {
-            tipoImovelSelecionado: imovel.tipoImovelSelecionado,
-            valorAluguel: parseFloat(imovel.valorAluguel),
-            valorIptu: parseFloat(imovel.valorIptu),
-            valorCondominio: parseFloat(imovel.valorCondominio),
-            valorGas: parseFloat(imovel.valorGas),
-            planoSelecionado: imovel.planoSelecionado,
-            valorMensal: parseFloat(imovel.valorMensal),
-            taxaSetup: parseFloat(imovel.taxaSetup),
-          },
-        },
-        proprietario: {
-          create: {
-            tipoPessoa: proprietario.tipoPessoa,
-            cnpj: proprietario.cnpj,
-            razaoSocial: proprietario.razaoSocial,
-            estadoCivil: proprietario.estadoCivil,
-            cpfConjuge: proprietario.cpfConjuge,
-            nomeCompleto: proprietario.nomeCompleto,
-            nomeCompletoConjuge: proprietario.nomeCompletoConjuge,
-            email: proprietario.email,
-            telefone: proprietario.telefone,
-            nacionalidade: proprietario.nacionalidade,
-            naturalidade: proprietario.naturalidade,
-            dataNascimento: new Date(proprietario.dataNascimento),
-            cpf: proprietario.cpf,
-            rg: proprietario.rg,
-            orgaoExpedidor: proprietario.orgaoExpedidor,
-            emailConjuge: proprietario.emailConjuge,
-            telefoneConjuge: proprietario.telefoneConjuge,
-            nacionalidadeConjuge: proprietario.nacionalidadeConjuge,
-            naturalidadeConjuge: proprietario.naturalidadeConjuge,
-            dataNascimentoConjuge: proprietario.dataNascimentoConjuge ? new Date(proprietario.dataNascimentoConjuge) : null,
-            rgConjuge: proprietario.rgConjuge,
-            orgaoExpedidorConjuge: proprietario.orgaoExpedidorConjuge,
-            cep: proprietario.cep,
-            estado: proprietario.estado,
-            bairro: proprietario.bairro,
-            endereco: proprietario.endereco,
-            numero: proprietario.numero,
-            complemento: proprietario.complemento,
-            anexoCpfRgMotorista: files.anexoCpfRgMotorista ? files.anexoCpfRgMotorista[0].path : null,
-            anexoCpfRgMotoristaConj: files.anexoCpfRgMotoristaConj ? files.anexoCpfRgMotoristaConj[0].path : null,
-            anexoEstadoCivil: files.anexoEstadoCivil ? files.anexoEstadoCivil[0].path : null,
-            anexoResidencia: files.anexoResidencia ? files.anexoResidencia[0].path : null,
-            anexoContratoSocial: files.anexoContratoSocial ? files.anexoContratoSocial[0].path : null,
-          },
-        },
-        imovelDetalhes: {
-          create: {
-            finalidade: imovelDetalhes.finalidade,
-            tipoImovel: imovelDetalhes.tipoImovel,
-            valorAluguel: parseFloat(imovelDetalhes.valorAluguel),
-            valorCondominio: parseFloat(imovelDetalhes.valorCondominio),
-            valorIptu: imovelDetalhes.valorIptu ? parseFloat(imovelDetalhes.valorIptu) : null,
-            valorAgua: imovelDetalhes.valorAgua ? parseFloat(imovelDetalhes.valorAgua) : null,
-            valorGas: imovelDetalhes.valorGas ? parseFloat(imovelDetalhes.valorGas) : null,
-            administradorNome: imovelDetalhes.administradorNome,
-            administradorTelefone: imovelDetalhes.administradorTelefone,
-            cepImovel: imovelDetalhes.cepImovel,
-            cidade: imovelDetalhes.cidade,
-            estado: imovelDetalhes.estado,
-            bairro: imovelDetalhes.bairro,
-            endereco: imovelDetalhes.endereco,
-            numero: imovelDetalhes.numero,
-            complemento: imovelDetalhes.complemento,
-            anexoCondominio: files.anexoCondominio ? files.anexoCondominio[0].path : null,
-            anexoIptu: files.anexoIptu ? files.anexoIptu[0].path : null,
-            anexoAgua: files.anexoAgua ? files.anexoAgua[0].path : null,
-            anexoLuz: files.anexoLuz ? files.anexoLuz[0].path : null,
-            anexoEscritura: files.anexoEscritura ? files.anexoEscritura[0].path : null,
-          },
-        },
-        locatario: {
-          create: {
-            tipoPessoa: locatario.tipoPessoa,
-            nomeCompleto: locatario.nomeCompleto,
-            email: locatario.email,
-            telefone: locatario.telefone,
-            nacionalidade: locatario.nacionalidade,
-            naturalidade: locatario.naturalidade,
-            estadoCivil: locatario.estadoCivil,
-            dataNascimento: new Date(locatario.dataNascimento),
-            cpf: locatario.tipoPessoa === "Física" ? locatario.cpf : null,
-            rg: locatario.tipoPessoa === "Física" ? locatario.rg : null,
-            orgaoExpedidor: locatario.tipoPessoa === "Física" ? locatario.orgaoExpedidor : null,
-            cnpj: locatario.tipoPessoa === "Jurídica" ? locatario.cnpj : null,
-            razaoSocial: locatario.tipoPessoa === "Jurídica" ? locatario.razaoSocial : null,
-            cep: locatario.cep,
-            estado: locatario.estado,
-            bairro: locatario.bairro,
-            endereco: locatario.endereco,
-            numero: locatario.numero,
-            complemento: locatario.complemento,
-            anexoCpfRgMotoristaLocatario: files.anexoCpfRgMotoristaLocatario ? files.anexoCpfRgMotoristaLocatario[0].path : null,
-            anexoEstadoCivilLocatario: files.anexoEstadoCivilLocatario ? files.anexoEstadoCivilLocatario[0].path : null,
-            anexoResidenciaLocatario: files.anexoResidenciaLocatario ? files.anexoResidenciaLocatario[0].path : null,
-            anexoContratoSocialLocatario: files.anexoContratoSocialLocatario ? files.anexoContratoSocialLocatario[0].path : null,
-            anexoUltimoBalancoLocatario: files.anexoUltimoBalancoLocatario ? files.anexoUltimoBalancoLocatario[0].path : null,
-          },
-        },
-      },
-      include: {
-        imovel: true,
-        proprietario: true,
-        imovelDetalhes: true,
-        locatario: true,
+        columnId: primeiraColuna.id, // Associar o card à primeira coluna
       },
     });
 
-    res.status(200).json(novoCard);
-    console.log(req.body.imovel);
-  } catch (error: any) {
-    // console.error("Erro ao criar card:", error)
-    res.status(500).json({ message: "Erro ao criar card" });
+    // Retorna o cardId para ser usado nos próximos formulários
+    return res.status(200).json({ cardId: novoCard.id });
+  } catch (error) {
+    console.error("Erro ao criar card:", error);
+    return res.status(500).json({ message: "Erro ao criar card" });
+  }
+};
+
+export const saveImovelToCard = async (req: Request, res: Response) => {
+  const { cardId, tipoImovelSelecionado, valorAluguel, valorIptu, valorCondominio, valorGas, planoSelecionado, valorMensal, taxaSetup } =
+    req.body;
+
+  try {
+    const imovel = await prisma.imovel.create({
+      data: {
+        tipoImovelSelecionado,
+        valorAluguel: parseFloat(valorAluguel),
+        valorIptu: parseFloat(valorIptu),
+        valorCondominio: parseFloat(valorCondominio),
+        valorGas: parseFloat(valorGas),
+        planoSelecionado,
+        valorMensal: parseFloat(valorMensal),
+        taxaSetup: parseFloat(taxaSetup),
+        card: {
+          connect: { id: cardId }, // Conectando o Imóvel ao Card
+        },
+      },
+    });
+
+    res.status(200).json(imovel);
+  } catch (error) {
+    console.error("Erro ao salvar imóvel:", error);
+    res.status(500).json({ message: "Erro ao salvar imóvel" });
+  }
+};
+
+export const saveProprietarioToCard = async (req: Request, res: Response) => {
+  const {
+    cardId,
+    tipoPessoa,
+    cnpj,
+    razaoSocial,
+    estadoCivil,
+    cpfConjuge,
+    nomeCompleto,
+    nomeCompletoConjuge,
+    email,
+    telefone,
+    nacionalidade,
+    naturalidade,
+    dataNascimento,
+    cpf,
+    rg,
+    orgaoExpedidor,
+    emailConjuge,
+    telefoneConjuge,
+    nacionalidadeConjuge,
+    naturalidadeConjuge,
+    dataNascimentoConjuge,
+    rgConjuge,
+    orgaoExpedidorConjuge,
+    cep,
+    estado,
+    bairro,
+    endereco,
+    numero,
+    complemento,
+  } = req.body;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  console.log("CardId:", cardId);
+  console.log("Dados do Proprietário:", req.body);
+  console.log("Arquivos recebidos:", files);
+  try {
+    const proprietario = await prisma.proprietario.create({
+      data: {
+        tipoPessoa,
+        cnpj,
+        razaoSocial,
+        estadoCivil,
+        cpfConjuge,
+        nomeCompleto,
+        nomeCompletoConjuge,
+        email,
+        telefone,
+        nacionalidade,
+        naturalidade,
+        dataNascimento: new Date(dataNascimento),
+        cpf,
+        rg,
+        orgaoExpedidor,
+        emailConjuge,
+        telefoneConjuge,
+        nacionalidadeConjuge,
+        naturalidadeConjuge,
+        dataNascimentoConjuge: dataNascimentoConjuge ? new Date(dataNascimentoConjuge) : null,
+        rgConjuge,
+        orgaoExpedidorConjuge,
+        cep,
+        estado,
+        bairro,
+        endereco,
+        numero,
+        complemento,
+        anexoCpfRgMotorista: files.anexoCpfRgMotorista ? files.anexoCpfRgMotorista[0].path : null,
+        anexoCpfRgMotoristaConj: files.anexoCpfRgMotoristaConj ? files.anexoCpfRgMotoristaConj[0].path : null,
+        anexoEstadoCivil: files.anexoEstadoCivil ? files.anexoEstadoCivil[0].path : null,
+        anexoResidencia: files.anexoResidencia ? files.anexoResidencia[0].path : null,
+        anexoContratoSocial: files.anexoContratoSocial ? files.anexoContratoSocial[0].path : null,
+        card: {
+          connect: { id: parseInt(cardId) }, // Converte cardId para inteiro
+        },
+      },
+    });
+
+    res.status(200).json(proprietario);
+  } catch (error) {
+    console.error("Erro ao salvar proprietário:", error);
+    res.status(500).json({ message: "Erro ao salvar proprietário" });
+  }
+};
+
+export const saveImovelDetalhesToCard = async (req: Request, res: Response) => {
+  const {
+    cardId,
+    finalidade,
+    tipoImovel,
+    valorAluguel,
+    valorCondominio,
+    valorIptu,
+    valorAgua,
+    valorGas,
+    administradorNome,
+    administradorTelefone,
+    cepImovel,
+    cidade,
+    estado,
+    bairro,
+    endereco,
+    numero,
+    complemento,
+  } = req.body;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  try {
+    // Converte cardId para número antes de usá-lo
+    const imovelDetalhes = await prisma.imovelDetalhes.create({
+      data: {
+        finalidade,
+        tipoImovel,
+        valorAluguel: parseFloat(valorAluguel),
+        valorCondominio: parseFloat(valorCondominio),
+        valorIptu: valorIptu ? parseFloat(valorIptu) : null,
+        valorAgua: valorAgua ? parseFloat(valorAgua) : null,
+        valorGas: valorGas ? parseFloat(valorGas) : null,
+        administradorNome,
+        administradorTelefone,
+        cepImovel,
+        cidade,
+        estado,
+        bairro,
+        endereco,
+        numero,
+        complemento,
+        anexoCondominio: files.anexoCondominio ? files.anexoCondominio[0].path : null,
+        anexoIptu: files.anexoIptu ? files.anexoIptu[0].path : null,
+        anexoAgua: files.anexoAgua ? files.anexoAgua[0].path : null,
+        anexoLuz: files.anexoLuz ? files.anexoLuz[0].path : null,
+        anexoEscritura: files.anexoEscritura ? files.anexoEscritura[0].path : null,
+        card: {
+          connect: { id: parseInt(cardId) }, // Certifique-se de converter o cardId para inteiro
+        },
+      },
+    });
+
+    res.status(200).json(imovelDetalhes);
+  } catch (error) {
+    console.error("Erro ao salvar detalhes do imóvel:", error);
+    res.status(500).json({ message: "Erro ao salvar detalhes do imóvel" });
+  }
+};
+
+export const saveLocatarioToCard = async (req: Request, res: Response) => {
+  const {
+    cardId,
+    tipoPessoa,
+    nomeCompleto,
+    email,
+    telefone,
+    nacionalidade,
+    naturalidade,
+    estadoCivil,
+    dataNascimento,
+    cpf,
+    rg,
+    orgaoExpedidor,
+    cnpj,
+    razaoSocial,
+    cep,
+    estado,
+    bairro,
+    endereco,
+    numero,
+    complemento,
+  } = req.body;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  try {
+    const locatario = await prisma.locatario.create({
+      data: {
+        tipoPessoa,
+        nomeCompleto,
+        email,
+        telefone,
+        nacionalidade,
+        naturalidade,
+        estadoCivil,
+        dataNascimento: new Date(dataNascimento),
+        cpf: tipoPessoa === "Física" ? cpf : null,
+        rg: tipoPessoa === "Física" ? rg : null,
+        orgaoExpedidor: tipoPessoa === "Física" ? orgaoExpedidor : null,
+        cnpj: tipoPessoa === "Jurídica" ? cnpj : null,
+        razaoSocial: tipoPessoa === "Jurídica" ? razaoSocial : null,
+        cep,
+        estado,
+        bairro,
+        endereco,
+        numero,
+        complemento,
+        anexoCpfRgMotoristaLocatario: files.anexoCpfRgMotoristaLocatario ? files.anexoCpfRgMotoristaLocatario[0].path : null,
+        anexoEstadoCivilLocatario: files.anexoEstadoCivilLocatario ? files.anexoEstadoCivilLocatario[0].path : null,
+        anexoResidenciaLocatario: files.anexoResidenciaLocatario ? files.anexoResidenciaLocatario[0].path : null,
+        anexoContratoSocialLocatario: files.anexoContratoSocialLocatario ? files.anexoContratoSocialLocatario[0].path : null,
+        anexoUltimoBalancoLocatario: files.anexoUltimoBalancoLocatario ? files.anexoUltimoBalancoLocatario[0].path : null,
+        card: {
+          connect: { id: parseInt(cardId) },
+        },
+      },
+    });
+
+    res.status(200).json(locatario);
+  } catch (error) {
+    console.error("Erro ao salvar locatário:", error);
+    res.status(500).json({ message: "Erro ao salvar locatário" });
+  }
+};
+
+// Função para atualizar o nome da coluna
+export const updateColumnName = async (req: Request, res: Response) => {
+  const { columnId } = req.params;
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: "Nome da coluna não fornecido" });
+  }
+  console.log(columnId);
+  console.log(name);
+  try {
+    const updatedColumn = await prisma.column.update({
+      where: { id: parseInt(columnId) },
+      data: { name },
+    });
+
+    res.status(200).json(updatedColumn);
+  } catch (error) {
+    console.error("Erro ao atualizar nome da coluna:", error);
+    res.status(500).json({ message: "Erro ao atualizar nome da coluna" });
   }
 };

@@ -5,7 +5,12 @@ import {
   getCardsByColumn,
   getColumnsAndCardsByBoardId,
   moveCardToColumn,
-  createCard,
+  createCard, // Renomeado para createCard
+  saveImovelToCard,
+  saveProprietarioToCard,
+  saveImovelDetalhesToCard,
+  saveLocatarioToCard,
+  updateColumnName,
 } from "../controllers/kanbanControllers";
 import upload from "../middlewares/multer"; // Importando o middleware de upload
 
@@ -26,27 +31,52 @@ router.get("/boards/:boardId/columns-cards", getColumnsAndCardsByBoardId);
 // Rota para atualizar a coluna de um card
 router.post("/cards/:cardId/move", moveCardToColumn);
 
-// Rota para criar um novo card com upload de arquivos
+// Rota para criar um card vazio
+router.post("/createCard", createCard); // Agora renomeada para createCard
+
+// Rota para salvar Imóvel ao Card
+router.post("/saveImovelToCard", saveImovelToCard);
+
+// Rota para salvar Proprietário ao Card com upload de arquivos
 router.post(
-  "/cards",
+  "/saveProprietarioToCard",
   upload.fields([
     { name: "anexoCpfRgMotorista", maxCount: 1 },
     { name: "anexoCpfRgMotoristaConj", maxCount: 1 },
     { name: "anexoEstadoCivil", maxCount: 1 },
     { name: "anexoResidencia", maxCount: 1 },
     { name: "anexoContratoSocial", maxCount: 1 },
+  ]),
+  saveProprietarioToCard
+);
+
+// Rota para salvar Imóvel Detalhes ao Card com upload de arquivos
+router.post(
+  "/saveImovelDetalhesToCard",
+  upload.fields([
     { name: "anexoCondominio", maxCount: 1 },
     { name: "anexoIptu", maxCount: 1 },
     { name: "anexoAgua", maxCount: 1 },
     { name: "anexoLuz", maxCount: 1 },
     { name: "anexoEscritura", maxCount: 1 },
-    { name: "anexoUltimoBalancoLocatario", maxCount: 1 },
+  ]),
+  saveImovelDetalhesToCard
+);
+
+// Rota para salvar Locatário ao Card com upload de arquivos
+router.post(
+  "/saveLocatarioToCard",
+  upload.fields([
     { name: "anexoCpfRgMotoristaLocatario", maxCount: 1 },
     { name: "anexoEstadoCivilLocatario", maxCount: 1 },
     { name: "anexoResidenciaLocatario", maxCount: 1 },
     { name: "anexoContratoSocialLocatario", maxCount: 1 },
+    { name: "anexoUltimoBalancoLocatario", maxCount: 1 },
   ]),
-  createCard
+  saveLocatarioToCard
 );
+
+// Adicionar a rota PATCH para editar o nome da coluna
+router.patch("/columns/:columnId", updateColumnName);
 
 export default router;
