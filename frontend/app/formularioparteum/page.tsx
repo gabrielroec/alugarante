@@ -4,9 +4,12 @@ import LandingPageHeaderForm from "@/components/LandingPageHeaderForm";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 const SecondForm = () => {
+  const { toast } = useToast(); // Hook do toast
   const router = useRouter();
+
   const [isPessoaJuridica, setIsPessoaJuridica] = useState(false);
   const [tipoPessoa, setTipoPessoa] = useState("Pessoa física");
   const [estadoCivil, setEstadoCivil] = useState("Solteiro");
@@ -38,6 +41,65 @@ const SecondForm = () => {
   const [complemento, setComplemento] = useState("");
   const [dadosFormulario, setDadosFormulario] = useState<any>(null);
 
+  const buscarCep = async (cep: string) => {
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast({
+          title: "CEP inválido",
+          description: "Por favor, insira um CEP válido.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Preencher os campos com a resposta da API
+      setEndereco(data.logradouro);
+      setBairro(data.bairro);
+      setEstado(data.uf);
+    } catch (error) {
+      console.error("Erro ao buscar o CEP:", error);
+    }
+  };
+
+  // Lidar com a mudança no campo de CEP
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let cep = e.target.value;
+    cep = cep.replace(/-/g, "");
+    setCep(cep);
+
+    // Verificar se o CEP tem 8 dígitos para buscar
+    if (cep.length === 8) {
+      buscarCep(cep);
+    }
+  };
+
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let cpf = e.target.value;
+
+    // Remover qualquer coisa que não seja número
+    cpf = cpf.replace(/\D/g, "");
+
+    // Adicionar pontos e traço conforme a formatação de CPF
+    if (cpf.length > 3) {
+      cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");
+    }
+    if (cpf.length > 6) {
+      cpf = cpf.replace(/(\d{3})(\d{3})(\d)/, "$1.$2.$3");
+    }
+    if (cpf.length > 9) {
+      cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+    }
+
+    // Limitar o CPF a 11 dígitos
+    cpf = cpf.slice(0, 14);
+
+    // Atualizar o estado com o CPF formatado
+    setCpf(cpf);
+  };
+
   // Lidar com a mudança de seleção de tipo de pessoa
   const handleSelectChange = (e: { target: { value: any } }) => {
     const selectedValue = e.target.value;
@@ -63,6 +125,34 @@ const SecondForm = () => {
   // Função para lidar com o submit do formulário
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!nomeCompleto || !email || !telefone || !cpf || !rg || !cep || !estado || !bairro || !endereco || !numero) {
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação adicional para pessoa jurídica
+    if (isPessoaJuridica && (!cnpj || !razaoSocial)) {
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, preencha os campos de CNPJ e Razão Social.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação adicional para cônjuge se a pessoa for casada
+    if (isCasado && (!nomeCompletoConjuge || !cpfConjuge || !rgConjuge || !emailConjuge || !telefoneConjuge)) {
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, preencha todos os campos do cônjuge.",
+        variant: "destructive",
+      });
+      return;
+    }
     console.log("Formulário enviado!"); // Verifique se isso aparece no console
 
     // Resto do código
@@ -100,9 +190,9 @@ const SecondForm = () => {
       ...dadosFormulario,
       ...novosDados,
     };
-
+    console.log(novosDados);
     localStorage.setItem("dadosFormulario", JSON.stringify(dadosAtualizados));
-
+    console.log(dadosAtualizados);
     setTimeout(() => {
       // Redirecionar para a próxima página usando o router do next
       router.push("/formulariopartedois");
@@ -271,7 +361,7 @@ const SecondForm = () => {
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
                   placeholder="Digite o seu CPF"
                   value={cpf}
-                  onChange={(e) => setCpf(e.target.value)}
+                  onChange={handleCpfChange}
                 />
               </div>
 
@@ -306,7 +396,7 @@ const SecondForm = () => {
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
                   placeholder="Digite o seu CEP"
                   value={cep}
-                  onChange={(e) => setCep(e.target.value)}
+                  onChange={handleCepChange} // Adicionando o evento aqui
                 />
               </div>
 
@@ -457,11 +547,57 @@ const SecondForm = () => {
                     value={rgConjuge}
                   />
                 </div>
+                {/* <div className="full">
+                  <div className="flex gap-4">
+                    <div className="w-full">
+                      <label className="block mb-2">
+                        Anexar CPF, RG ou Carteira de motorista<br></br>Côjuge
+                      </label>
+                      <input
+                        type="file"
+                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                        accept="image/*,application/pdf"
+                      />
+                    </div>
+                  </div>
+                </div> */}
               </>
             )}
+            {/* <div className="full">
+              <div className="flex gap-4">
+                <div className="w-full">
+                  <label className="block mb-2">Anexar CPF, RG ou Carteira de motorista</label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                  />
+                </div>
 
-            <div className="col-span-2 flex justify-end">
-              <Button type="submit">Enviar</Button>
+                <div className="w-full">
+                  <label className="block mb-2">Anexar Estado Civil</label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                  />
+                </div>
+
+                <div className="w-full">
+                  <label className="block mb-2">Anexar Comprovante de Residência</label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                  />
+                </div>
+              </div>
+            </div> */}
+
+            <div className="w-full pb-10">
+              <Button className="w-full py-7 mt-4 bg-[#87A644] hover:bg-[#5b702e] text-white" type="submit">
+                Enviar
+              </Button>
             </div>
           </form>
         </div>

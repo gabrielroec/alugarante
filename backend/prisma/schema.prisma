@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,167 +7,152 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum TipoPessoa {
-  FISICA
-  JURIDICA
+model Board {
+  id        Int      @id @default(autoincrement())
+  name      String
+  columns   Column[] // Relacionamento com as Columns
 }
 
-enum EstadoCivil {
-  SOLTEIRO
-  CASADO
-  DIVORCIADO
-  VIUVO
+model Column {
+  id        Int      @id @default(autoincrement())
+  name      String
+  boardId   Int
+  board     Board    @relation(fields: [boardId], references: [id])
+  cards     Card[]   // Relacionamento com os Cards
 }
 
-enum Role {
-  USER
-  ADMIN
+model Imovel {
+  id                    Int      @id @default(autoincrement())
+  tipoImovelSelecionado String
+  valorAluguel          Float
+  valorIptu             Float
+  valorCondominio       Float
+  valorGas              Float
+  planoSelecionado      String
+  valorMensal           Float
+  taxaSetup             Float
+  card                  Card?    @relation(fields: [cardId], references: [id])
+  cardId                Int      @unique // Defina o campo como único
 }
 
-model User {
-  id           Int      @id @default(autoincrement())
-  nome         String
-  email        String   @unique
-  telefone     String
-  senha        String
-  role         Role     @default(USER)
+model Proprietario {
+  id                      Int      @id @default(autoincrement())
+  tipoPessoa              String
+  cnpj                    String?
+  razaoSocial             String?
+  estadoCivil             String
+  cpfConjuge              String?
+  nomeCompleto            String
+  nomeCompletoConjuge     String?
+  email                   String
+  telefone                String
+  nacionalidade           String
+  naturalidade            String
+  dataNascimento          DateTime
+  cpf                     String
+  rg                      String
+  orgaoExpedidor          String
+  emailConjuge            String?
+  telefoneConjuge         String?
+  nacionalidadeConjuge    String?
+  naturalidadeConjuge     String?
+  dataNascimentoConjuge   DateTime?
+  rgConjuge               String?
+  orgaoExpedidorConjuge   String?
+  cep                     String
+  estado                  String
+  bairro                  String
+  endereco                String
+  numero                  String
+  complemento             String?
+
+  // Campos para armazenar anexos
+  anexoCpfRgMotorista     String?  // Caminho do arquivo do proprietário
+  anexoCpfRgMotoristaConj String?  // Caminho do arquivo do cônjuge
+  anexoEstadoCivil        String?  // Caminho do comprovante de estado civil
+  anexoResidencia         String?  // Caminho do comprovante de residência
+  anexoContratoSocial     String?  // Caminho do contrato social (caso empresa)
+
+  card                    Card?    @relation(fields: [cardId], references: [id])
+  cardId                  Int      @unique
 }
 
-model Proprietario{
-  id Int @id @default(autoincrement())
-  tipoPessoa TipoPessoa
-  cnpj String?
-  razaoSocial String?
-  nome String
-  email String
-  telefone String
-  nacionalidade String
-  naturalidade String
-  estadoCivil EstadoCivil
-  dataNascimento DateTime
-  cpf String
-  rg String
-  orgaoExpeditor String
-  conjuge Conjuge? @relation(fields: [conjugeId], references: [id])
-  conjugeId Int?
-  endereco Endereco @relation(fields: [enderecoId], references: [id])
-  enderecoId     Int
-  documentos Documento[]
+model ImovelDetalhes {
+  id                    Int      @id @default(autoincrement())
+  finalidade            String
+  tipoImovel            String
+  valorAluguel          Float
+  valorCondominio       Float
+  valorIptu             Float?
+  valorAgua             Float?
+  valorGas              Float?
+  administradorNome     String?
+  administradorTelefone String?
+  cepImovel             String
+  cidade                String
+  estado                String
+  bairro                String
+  endereco              String
+  numero                String
+  complemento           String?
 
-  Card Card[]
-}
+  // Campos para armazenar anexos do imóvel
+  anexoCondominio       String?  // Caminho do comprovante de condomínio
+  anexoIptu             String?  // Caminho do comprovante de IPTU
+  anexoAgua             String?  // Caminho da última conta de água
+  anexoLuz              String?  // Caminho da última conta de luz
+  anexoEscritura        String?  // Caminho da escritura do imóvel
 
-model Conjuge{
-  id Int @id @default(autoincrement())
-  nome String
-  email String
-  telefone String
-  nacionalidade String
-  naturalidade String
-  dataNascimento DateTime
-  cpf String
-  rg String
-  orgaoExpeditor String
-  
-  proprietario Proprietario[]
-}
-
-model Endereco{
-  id Int @id @default(autoincrement())
-  cep String
-  estado String
-  cidade String
-  bairro String
-  endereco String
-  numero String
-  complemento String?
-
-  Proprietario Proprietario[]
-
-  Imovel Imovel[]
-
-  Locatario Locatario[]
-}
-
-model Documento{
-  id Int @id @default(autoincrement())
-  tipo String
-  url String
-
-  Proprietario Proprietario[]
-
-  Imovel Imovel[]
-
-  Locatario Locatario[]
-}
-
-model Imovel{
-  id Int @id @default(autoincrement())
-  finalidade String
-  tipo String
-  valorAluguel Float
-  valorCondominio Float
-  valorIptu Float
-  aguaInclusa Boolean
-  gasIncluso Boolean
-  adminCondominio String
-  telefoneAdminCOndominio String
-  endereco Endereco @relation(fields:[enderecoId], references:[id])
-  enderecoId Int
-  documentos Documento[]
-
-  Card Card[]
+  card                  Card?    @relation(fields: [cardId], references: [id])
+  cardId                Int      @unique
 }
 
 model Locatario {
-  id             Int         @id @default(autoincrement())
-  tipoPessoa     TipoPessoa
-  cnpj           String?
-  razaoSocial    String?
-  nome           String
-  email          String
-  telefone       String
-  nacionalidade  String
-  naturalidade   String
-  estadoCivil    EstadoCivil
-  dataNascimento DateTime
-  cpf            String
-  rg             String
-  orgaoExpeditor String
-  endereco       Endereco    @relation(fields: [enderecoId], references: [id])
-  enderecoId     Int
-  documentos     Documento[]
+  id                    Int      @id @default(autoincrement())
+  tipoPessoa            String
+  nomeCompleto          String
+  email                 String
+  telefone              String
+  nacionalidade         String
+  naturalidade          String
+  estadoCivil           String
+  dataNascimento        DateTime
+  cpf                   String?
+  rg                    String?
+  orgaoExpedidor        String?
+  cnpj                  String?
+  razaoSocial           String?
+  cep                   String
+  estado                String
+  bairro                String
+  endereco              String
+  numero                String
+  complemento           String?
 
-  Card Card[]
+  // Campos para armazenar anexos do locatário
+  anexoCpfRgMotoristaLocatario   String?  // Caminho do arquivo do locatário
+  anexoEstadoCivilLocatario      String?  // Caminho do comprovante de estado civil do locatário
+  anexoResidenciaLocatario       String?  // Caminho do comprovante de residência do locatário
+  anexoContratoSocialLocatario   String?  // Caminho do contrato social (caso empresa)
+  anexoUltimoBalancoLocatario    String?  // Caminho do último balanço financeiro do locatário
+
+  card                  Card?    @relation(fields: [cardId], references: [id])
+  cardId                Int      @unique
 }
 
 model Card {
-  id             Int         @id @default(autoincrement())
-  proprietario   Proprietario @relation(fields: [proprietarioId], references: [id])
-  proprietarioId Int
-  imovel         Imovel      @relation(fields: [imovelId], references: [id])
-  imovelId       Int
-  locatario      Locatario   @relation(fields: [locatarioId], references: [id])
-  locatarioId    Int
-  pipeline       Pipeline    @relation(fields: [pipelineId], references: [id])
-  pipelineId     Int
-  etapa          Etapa       @relation(fields: [etapaId], references: [id])
-  etapaId        Int
-  situacao       String
-}
+  id                    Int         @id @default(autoincrement())
+  columnId              Int
+  column                Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  
+  // Relacionamentos
+  imovel                Imovel?
+  proprietario          Proprietario?
+  imovelDetalhes        ImovelDetalhes?
+  locatario             Locatario?
 
-model Pipeline {
-  id           Int      @id @default(autoincrement())
-  nome         String
-  etapas       Etapa[]
+  // Campo para armazenar múltiplos anexos no card
+  anexos                Json?       // JSON para armazenar lista de arquivos anexados posteriormente
 
-  Card Card[]
-}
-
-model Etapa {
-  id           Int      @id @default(autoincrement())
-  nome         String
-  pipeline     Pipeline @relation(fields: [pipelineId], references: [id])
-  pipelineId   Int
-  cards        Card[]
+  createdAt             DateTime    @default(now())
 }

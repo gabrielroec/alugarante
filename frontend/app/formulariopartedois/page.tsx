@@ -13,8 +13,8 @@ const ThirdForm = () => {
   // Estados para capturar os novos dados preenchidos no ThirdForm
   const [finalidade, setFinalidade] = useState("Aluguel");
   const [iptu, setIptu] = useState("Pago 2024");
-  const [agua, setAgua] = useState("Rede Pública");
-  const [gas, setGas] = useState("Rede Pública");
+  const [agua, setAgua] = useState("");
+  const [gas, setGas] = useState("");
   const [valorAluguel, setValorAluguel] = useState("");
   const [valorCondominio, setValorCondominio] = useState("");
   const [valorIptu, setValorIptu] = useState("");
@@ -66,7 +66,7 @@ const ThirdForm = () => {
       ...dadosFormulario, // Dados do SecondForm
       ...novosDados, // Dados do ThirdForm
     };
-
+    console.log(novosDados);
     // Atualizar o localStorage com os dados combinados
     localStorage.setItem("dadosFormulario", JSON.stringify(dadosAtualizados));
 
@@ -168,42 +168,26 @@ const ThirdForm = () => {
             </div>
 
             <div className="flex w-full gap-4">
-              <div className="flex flex-col w-full">
-                <label className="block mb-2">Água</label>
-                <div className="relative">
-                  <select
-                    value={agua} // Certifique-se de que a variável "agua" esteja definida no estado
-                    className="w-full border border-[#ccc] appearance-none rounded-2xl px-10 py-4"
-                    onChange={(e) => setAgua(e.target.value)} // Certifique-se de ter a função "setAgua" no estado
-                  >
-                    <option value="" disabled>
-                      Selecione uma opção
-                    </option>
-                    <option value="poço">Poço</option>
-                    <option value="rede_publica">Rede Pública</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                    <ClickSvgIcon className="fill-[#87A644] ml-[10px]" />
-                  </div>
-                </div>
+              <div className="w-full">
+                <label className="block mb-2">Valor da agua</label>
+                <input
+                  type="text"
+                  className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
+                  placeholder="Digite o valor da água (Ex: 150)"
+                  value={agua}
+                  onChange={(e) => setAgua(e.target.value)}
+                />
               </div>
               <div className="flex flex-col w-full">
-                <label className="block mb-2">Gás</label>
-                <div className="relative">
-                  <select
-                    value={gas} // Certifique-se de que a variável "gas" esteja definida no estado
-                    className="w-full border border-[#ccc] appearance-none rounded-2xl px-10 py-4"
-                    onChange={(e) => setGas(e.target.value)} // Certifique-se de ter a função "setGas" no estado
-                  >
-                    <option value="" disabled>
-                      Selecione uma opção
-                    </option>
-                    <option value="encanado">Gás Encanado</option>
-                    <option value="botijao">Botijão de Gás</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                    <ClickSvgIcon className="fill-[#87A644] ml-[10px]" />
-                  </div>
+                <div className="w-full">
+                  <label className="block mb-2">Valor do Gás</label>
+                  <input
+                    type="text"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
+                    placeholder="Digite o valor do gás (Ex: 150)"
+                    value={gas}
+                    onChange={(e) => setGas(e.target.value)}
+                  />
                 </div>
               </div>
             </div>

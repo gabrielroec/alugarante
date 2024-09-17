@@ -74,12 +74,12 @@ const FourthForm = () => {
       ...dadosFormulario,
       ...novosDados,
     };
-
+    console.log(novosDados);
     localStorage.setItem("dadosFormularioCompleto", JSON.stringify(dadosAtualizados));
-    console.log("Dados atualizados do formulário:", dadosAtualizados);
+    // console.log("Dados atualizados do formulário:", dadosAtualizados);
 
     setTimeout(() => {
-      router.push("/formulariopartetres");
+      router.push("/");
     }, 100);
   };
 
@@ -354,12 +354,11 @@ const FourthForm = () => {
                     />
                   </div>
                 </div>
-
-                <div className="col-span-2 flex justify-end">
-                  <Button type="submit">Enviar</Button>
-                </div>
               </>
             )}
+            <div className="col-span-2 flex justify-end">
+              <Button type="submit">Enviar</Button>
+            </div>
           </form>
         </div>
       </div>

@@ -1,187 +1,215 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useState, useEffect } from "react";
-import ClickSvg from "../assets/click.svg";
 import ClickSvgIcon from "@/assets/ClickIcon";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-
-// Arrays de opções para os selects
-const estados = ["São Paulo", "Rio de Janeiro", "Minas Gerais", "Bahia", "Paraná", "Santa Catarina"];
-const tiposImovel = ["Apartamento", "Casa", "Comercial", "Terreno"];
-const faixasAluguel = ["R$500 - R$1000", "R$1000 - R$2000", "R$2000 - R$3000", "R$3000 - R$5000", "Acima de R$5000"];
+import { useToast } from "@/components/ui/use-toast";
+const tiposImovel = ["Residencial", "Comercial"];
 
 export default function FirstForm() {
-  const [estadoSelecionado, setEstadoSelecionado] = useState("");
+  const { toast } = useToast();
+
   const [tipoImovelSelecionado, setTipoImovelSelecionado] = useState("");
-  const [faixaAluguelSelecionada, setFaixaAluguelSelecionada] = useState("");
-  const [coberturaFurto, setCoberturaFurto] = useState(false);
-  const [assistencia24h, setAssistencia24h] = useState(false);
-  const [valorMensal, setValorMensal] = useState(99.9);
+  const [valorAluguel, setValorAluguel] = useState<string | null>(null);
+  const [valorIptu, setValorIptu] = useState<string | null>(null);
+  const [valorCondominio, setValorCondominio] = useState<string | null>(null);
+  const [valorGas, setValorGas] = useState<string | null>(null);
+  const [planoSelecionado, setPlanoSelecionado] = useState("");
+  const [valorMensal, setValorMensal] = useState(0);
+  const [taxaSetup, setTaxaSetup] = useState(0);
   const router = useRouter();
 
-  // Função para calcular o valor com base nas escolhas
   const calcularValorMensal = () => {
-    let valorBase = 99.9; // Valor inicial base
+    const aluguel = valorAluguel ? parseFloat(valorAluguel) : 0;
+    const iptu = valorIptu ? parseFloat(valorIptu) : 0;
+    const condominio = valorCondominio ? parseFloat(valorCondominio) : 0;
+    const gas = valorGas ? parseFloat(valorGas) : 0;
 
-    // Ajustar o valor dependendo da faixa de aluguel
-    if (faixaAluguelSelecionada === "R$1000 - R$2000") {
-      valorBase += 30;
-    } else if (faixaAluguelSelecionada === "R$2000 - R$3000") {
-      valorBase += 50;
-    } else if (faixaAluguelSelecionada === "R$3000 - R$5000") {
-      valorBase += 80;
-    } else if (faixaAluguelSelecionada === "Acima de R$5000") {
-      valorBase += 120;
-    }
+    let encargos = iptu + condominio + gas;
+    let valorBase = 0;
 
-    // Cobertura de furto/roubo adiciona um valor fixo
-    if (coberturaFurto) {
-      valorBase += 20;
-    }
-
-    // Assistência 24h adiciona um valor fixo
-    if (assistencia24h) {
-      valorBase += 15;
+    if (planoSelecionado === "Plano 1") {
+      valorBase = aluguel * 0.15; // 15% do aluguel + encargos
+    } else if (planoSelecionado === "Plano 2") {
+      valorBase = aluguel * 0.12; // 12% do aluguel
+      setTaxaSetup(120);
+    } else if (planoSelecionado === "Plano 3") {
+      valorBase = aluguel * 0.08; // 8% do aluguel
+      setTaxaSetup(80);
+    } else {
+      setTaxaSetup(0);
     }
 
     setValorMensal(valorBase);
   };
 
-  // Usar useEffect para recalcular o valor quando as opções mudarem
   useEffect(() => {
     calcularValorMensal();
-  }, [faixaAluguelSelecionada, coberturaFurto, assistencia24h]);
+  }, [valorAluguel, valorIptu, valorCondominio, valorGas, planoSelecionado]);
 
-  // Função para lidar com o submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validação dos campos
+    if (!tipoImovelSelecionado || !valorAluguel || !valorIptu || !valorCondominio || !valorGas || !planoSelecionado) {
+      // Exibir o Toast de erro caso algum campo não esteja preenchido
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, preencha todos os campos obrigatórios antes de enviar.",
+        variant: "destructive", // Estilo de erro
+      });
+      return;
+    }
+
     const dadosFormulario = {
-      estadoSelecionado,
       tipoImovelSelecionado,
-      faixaAluguelSelecionada,
-      coberturaFurto,
-      assistencia24h,
+      valorAluguel,
+      valorIptu,
+      valorCondominio,
+      valorGas,
+      planoSelecionado,
       valorMensal,
+      taxaSetup,
     };
 
-    // Salvar os dados no localStorage
     localStorage.setItem("dadosFormulario", JSON.stringify(dadosFormulario));
 
-    // Garantir que os dados estão salvos antes de redirecionar
+    console.log(dadosFormulario);
+
     setTimeout(() => {
-      // Redirecionar para a próxima página
       router.push("/formularioparteum");
-    }, 100); // Pode ser um pequeno timeout para garantir que o armazenamento foi bem-sucedido
+    }, 100);
   };
 
   return (
     <form className="mt-10" onSubmit={handleSubmit}>
-      {/* Campo Estado */}
-      <div className="relative mb-4">
-        <select
-          value={estadoSelecionado}
-          onChange={(e) => setEstadoSelecionado(e.target.value)}
-          className="w-full border appearance-none rounded-2xl bg-[#024059] text-white p-5 pr-10"
-        >
-          <option value="">Selecione um estado</option>
-          {estados.map((estado) => (
-            <option key={estado} value={estado}>
-              {estado}
-            </option>
-          ))}
-        </select>
-        {/* Ícone SVG */}
-        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-          <Image src={ClickSvg} alt="clique" />
-        </div>
-      </div>
-
-      {/* Campo Tipo de Imóvel */}
+      {/* Select do Tipo de Imóvel */}
       <div className="relative mb-4">
         <select
           value={tipoImovelSelecionado}
           onChange={(e) => setTipoImovelSelecionado(e.target.value)}
           className="w-full border appearance-none rounded-2xl bg-[#024059] text-white p-5 pr-10"
         >
-          <option value="">Selecione o tipo de imóvel</option>
+          <option value="">Selecione o tipo do imóvel</option>
           {tiposImovel.map((tipo) => (
             <option key={tipo} value={tipo}>
               {tipo}
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-          <Image src={ClickSvg} alt="clique" />
-        </div>
       </div>
 
-      {/* Campo Preço do Aluguel */}
+      {/* Campos livres para valores */}
       <div className="relative mb-4">
-        <select
-          value={faixaAluguelSelecionada}
-          onChange={(e) => setFaixaAluguelSelecionada(e.target.value)}
-          className="w-full border appearance-none rounded-2xl bg-[#024059] text-white p-5 pr-10"
-        >
-          <option value="">Selecione a faixa de aluguel</option>
-          {faixasAluguel.map((faixa) => (
-            <option key={faixa} value={faixa}>
-              {faixa}
-            </option>
-          ))}
-        </select>
-        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-          <Image src={ClickSvg} alt="clique" />
-        </div>
+        <input
+          type="number"
+          value={valorAluguel ?? ""}
+          onChange={(e) => setValorAluguel(e.target.value)}
+          placeholder="Valor do Aluguel"
+          className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+        />
+      </div>
+      <div className="relative mb-4">
+        <input
+          type="number"
+          value={valorIptu ?? ""}
+          onChange={(e) => setValorIptu(e.target.value)}
+          placeholder="Valor do IPTU"
+          className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+        />
+      </div>
+      <div className="relative mb-4">
+        <input
+          type="number"
+          value={valorCondominio ?? ""}
+          onChange={(e) => setValorCondominio(e.target.value)}
+          placeholder="Valor do Condomínio"
+          className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+        />
+      </div>
+      <div className="relative mb-4">
+        <input
+          type="number"
+          value={valorGas ?? ""}
+          onChange={(e) => setValorGas(e.target.value)}
+          placeholder="Valor do Gás"
+          className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+        />
       </div>
 
-      {/* Cobertura contra furto/roubo */}
+      {/* Planos */}
       <div
         className={`relative mb-4 border-b border-gray-300 p-4 rounded-xl ${
-          coberturaFurto ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
+          planoSelecionado === "Plano 1" ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
         }`}
-        onClick={() => {
-          setCoberturaFurto(!coberturaFurto);
-        }}
+        onClick={() => setPlanoSelecionado("Plano 1")}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-bold">Cobertura contra furto/roubo</p>
-            <p className="text-sm text-gray-500">Pagamento 100% do preço até 100mil</p>
+            <p className="font-bold">Plano 1</p>
+            {planoSelecionado === "Plano 1" && (
+              <p className="text-sm text-white">
+                Incluso:<br></br>Contrato de locação<br></br>Assessoria Jurídica<br></br>Ação de despejo<br></br>Ação de cobrança<br></br>
+                Garantia do Aluguel, IPTU, Condomínio e Gás<br></br>Cobrança Extrajudicial
+              </p>
+            )}
           </div>
-          {/* Ícone SVG à direita */}
           <div className="flex items-center space-x-2">
-            <ClickSvgIcon className={`${coberturaFurto ? "fill-white" : "fill-[#87A644]"}`} />
+            <ClickSvgIcon className={`${planoSelecionado === "Plano 1" ? "fill-white" : "fill-[#87A644]"}`} />
           </div>
         </div>
       </div>
 
-      {/* Assistência 24h */}
       <div
         className={`relative mb-4 border-b border-gray-300 p-4 rounded-xl ${
-          assistencia24h ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
+          planoSelecionado === "Plano 2" ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
         }`}
-        onClick={() => {
-          setAssistencia24h(!assistencia24h);
-        }}
+        onClick={() => setPlanoSelecionado("Plano 2")}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-bold">Assistência 24h</p>
-            <p className="text-sm text-gray-500">Assistência 24h em todo o território nacional.</p>
+            <p className="font-bold">Plano 2</p>
+            {planoSelecionado === "Plano 2" && (
+              <p className="text-sm text-white">
+                Incluso:<br></br>Contrato de locação<br></br>Assessoria Jurídica<br></br>Ação de despejo<br></br>Ação de cobrança<br></br>
+                Garantia do Aluguel<br></br>Cobrança Extrajudicial<br></br>
+                Taxa Setup: R$120,00
+              </p>
+            )}
           </div>
-          {/* Ícone SVG à direita */}
           <div className="flex items-center space-x-2">
-            <ClickSvgIcon className={`${assistencia24h ? "fill-white" : "fill-[#87A644]"}`} />
+            <ClickSvgIcon className={`${planoSelecionado === "Plano 2" ? "fill-white" : "fill-[#87A644]"}`} />
           </div>
         </div>
       </div>
 
-      {/* Preço Final e Botão */}
+      <div
+        className={`relative mb-4 border-b border-gray-300 p-4 rounded-xl ${
+          planoSelecionado === "Plano 3" ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
+        }`}
+        onClick={() => setPlanoSelecionado("Plano 3")}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-bold">Plano 3</p>
+            {planoSelecionado === "Plano 3" && (
+              <p className="text-sm text-white">
+                Incluso:<br></br>Contrato de locação<br></br>Assessoria Jurídica<br></br>Ação de despejo<br></br>Ação de cobrança<br></br>
+                Cobrança Extrajudicial<br></br>
+                Taxa Setup: R$80,00
+              </p>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <ClickSvgIcon className={`${planoSelecionado === "Plano 3" ? "fill-white" : "fill-[#87A644]"}`} />
+          </div>
+        </div>
+      </div>
+
       <div className="text-center mt-6">
         <p className="text-sm text-gray-600">Valor da mensalidade</p>
         <p className="text-4xl font-bold text-gray-800">R${valorMensal.toFixed(2)}/mês</p>
-        <p className="text-sm text-gray-600 mb-4">Valor de ativação única: R$299,90</p>
+        {taxaSetup > 0 && <p className="text-sm text-gray-600 mb-4">Taxa de Setup: R${taxaSetup.toFixed(2)}</p>}
         <button className="bg-[#87A644] text-white px-6 py-6 rounded-lg hover:bg-green-600 mt-10 w-full" type="submit">
           Faça uma cotação agora!
         </button>
