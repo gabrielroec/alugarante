@@ -1,15 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import boardReducer from "./boardSlice"; // Importa o reducer dos boards
+import rootReducer from "./root"; // Isso já contém todos os reducers combinados
 
-// Configuração da store do Redux
-const store = configureStore({
-  reducer: {
-    boards: boardReducer, // Adiciona o reducer dos boards
-  },
+export const store = configureStore({
+  reducer: rootReducer, // Usa o rootReducer diretamente
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false, // Desabilita a verificação de serializabilidade para lidar com arquivos
+    }),
 });
 
-// Tipagens úteis para serem usadas no projeto
-export type RootState = ReturnType<typeof store.getState>; // Tipagem do estado da store
-export type AppDispatch = typeof store.dispatch; // Tipagem do dispatch
-
-export default store;
+export type RootState = ReturnType<typeof store.getState>; // Exportando RootState

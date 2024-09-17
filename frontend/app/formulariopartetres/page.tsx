@@ -3,11 +3,34 @@ import ClickSvgIcon from "@/assets/ClickIcon";
 import LandingPageHeaderForm from "@/components/LandingPageHeaderForm";
 import { Button } from "@/components/ui/button";
 import React, { Fragment, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import api from "@/services/api";
 
 const FourthForm = () => {
   const router = useRouter();
-  const [dadosFormulario, setDadosFormulario] = useState<any>(null);
+  const searchParams = useSearchParams(); // Para pegar o cardId da URL
+  const { toast } = useToast();
+
+  const [cardId, setCardId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const idFromParams = searchParams.get("cardId");
+
+    console.log("ID from URL parameters:", idFromParams); // Verifique se o ID está sendo capturado
+
+    if (!idFromParams) {
+      toast({
+        title: "Erro",
+        description: "ID do card não encontrado. Redirecionando para o início.",
+        variant: "destructive",
+      });
+      router.push("/"); // Redireciona para outra página
+    } else {
+      setCardId(parseInt(idFromParams)); // Armazena o cardId no estado
+    }
+  }, [router, searchParams, toast]);
+
   const [dadosLocatario, setDadosLocatario] = useState("Nao");
   const [locatarioPessoaJuridica, setLocatarioPessoaJuridica] = useState("Nao");
   const [isLocatario, setIsLocatario] = useState(false);
@@ -33,79 +56,97 @@ const FourthForm = () => {
   const [locatarioCnpj, setLocatarioCnpj] = useState("");
   const [locatarioRazaoSocial, setLocatarioRazaoSocial] = useState("");
 
-  useEffect(() => {
-    const dados = localStorage.getItem("dadosFormulario");
-    if (dados) {
-      setDadosFormulario(JSON.parse(dados));
-    }
-  }, []);
+  // Variáveis para arquivos anexados
+  const [anexoCpfRgMotoristaLocatario, setAnexoCpfRgMotoristaLocatario] = useState<File | undefined>(undefined);
+  const [anexoEstadoCivilLocatario, setAnexoEstadoCivilLocatario] = useState<File | undefined>(undefined);
+  const [anexoResidenciaLocatario, setAnexoResidenciaLocatario] = useState<File | undefined>(undefined);
+  const [anexoContratoSocialLocatario, setAnexoContratoSocialLocatario] = useState<File | undefined>(undefined);
+  const [anexoUltimoBalancoLocatario, setAnexoUltimoBalancoLocatario] = useState<File | undefined>(undefined);
 
-  useEffect(() => {
-    console.log("Dados recuperados:", dadosFormulario);
-  }, [dadosFormulario]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  // Função de envio do formulário
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const novosDados = {
-      dadosLocatario,
-      locatarioPessoaJuridica,
-      locatarioCnpj: isLocatarioPessoaJuridica ? locatarioCnpj : null,
-      locatarioRazaoSocial: isLocatarioPessoaJuridica ? locatarioRazaoSocial : null,
-      locatarioNomeCompleto,
-      locatarioEmail,
-      locatarioTelefone,
-      locatarioNacionalidade,
-      locatarioNaturalidade,
-      locatarioEstadoCivil,
-      locatarioDataNascimento,
-      locatarioCpf,
-      locatarioRg,
-      locatarioOrgaoExpedidor,
-      locatarioCep,
-      locatarioEstado,
-      locatarioBairro,
-      locatarioEndereco,
-      locatarioNumero,
-      locatarioComplemento,
-    };
+    if (!locatarioNomeCompleto || !locatarioEmail || !locatarioTelefone) {
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const dadosAtualizados = {
-      ...dadosFormulario,
-      ...novosDados,
-    };
-    console.log(novosDados);
-    localStorage.setItem("dadosFormularioCompleto", JSON.stringify(dadosAtualizados));
-    // console.log("Dados atualizados do formulário:", dadosAtualizados);
+    if (!cardId) {
+      toast({
+        title: "Erro no envio",
+        description: "ID do card não está disponível.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setTimeout(() => {
-      router.push("/");
-    }, 100);
+    const formData = new FormData();
+    formData.append("cardId", cardId.toString());
+    formData.append("tipoPessoa", isLocatarioPessoaJuridica ? "Jurídica" : "Física");
+    formData.append("nomeCompleto", locatarioNomeCompleto);
+    formData.append("email", locatarioEmail);
+    formData.append("telefone", locatarioTelefone);
+    formData.append("nacionalidade", locatarioNacionalidade);
+    formData.append("naturalidade", locatarioNaturalidade);
+    formData.append("estadoCivil", locatarioEstadoCivil);
+    formData.append("dataNascimento", locatarioDataNascimento);
+    formData.append("cpf", locatarioCpf || "");
+    formData.append("rg", locatarioRg || "");
+    formData.append("orgaoExpedidor", locatarioOrgaoExpedidor || "");
+    formData.append("cnpj", locatarioCnpj || "");
+    formData.append("razaoSocial", locatarioRazaoSocial || "");
+    formData.append("cep", locatarioCep);
+    formData.append("estado", locatarioEstado);
+    formData.append("bairro", locatarioBairro);
+    formData.append("endereco", locatarioEndereco);
+    formData.append("numero", locatarioNumero);
+    formData.append("complemento", locatarioComplemento || "");
+
+    // Adiciona os arquivos se eles existirem
+    if (anexoCpfRgMotoristaLocatario) formData.append("anexoCpfRgMotoristaLocatario", anexoCpfRgMotoristaLocatario);
+    if (anexoEstadoCivilLocatario) formData.append("anexoEstadoCivilLocatario", anexoEstadoCivilLocatario);
+    if (anexoResidenciaLocatario) formData.append("anexoResidenciaLocatario", anexoResidenciaLocatario);
+    if (anexoContratoSocialLocatario) formData.append("anexoContratoSocialLocatario", anexoContratoSocialLocatario);
+    if (anexoUltimoBalancoLocatario) formData.append("anexoUltimoBalancoLocatario", anexoUltimoBalancoLocatario);
+
+    try {
+      // Enviar os dados para a rota do backend
+      const response = await api.post("/saveLocatarioToCard", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Exibir toast de sucesso
+      toast({
+        title: "Formulário enviado",
+        description: "Os dados do imóvel foram salvos com sucesso.",
+        variant: "default",
+      });
+
+      // Redirecionar para o próximo formulário (locatário)
+      setTimeout(() => {
+        router.push(`/`);
+      }, 100);
+    } catch (error) {
+      // Exibir toast de erro
+      toast({
+        title: "Erro no envio",
+        description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
-
   return (
     <Fragment>
       <LandingPageHeaderForm />
       <div className="min-h-screen flex flex-col items-center mt-10 ">
         <div className="w-full max-w-4xl ">
-          <div className="flex justify-between items-center mb-6 relative">
-            <div className="relative z-10 flex items-center flex-col">
-              <div className="bg-[#87A644] text-white w-[70px] h-[70px] rounded-full flex justify-center items-center">1</div>
-              <span className="ml-2">Dados do proprietário</span>
-            </div>
-            <div className="relative z-10 flex items-center flex-col">
-              <div className="bg-[#87A644] text-white w-[70px] h-[70px] rounded-full flex justify-center items-center">2</div>
-              <span className="ml-2">Informações do imóvel</span>
-            </div>
-            <div className="relative z-10 flex items-center flex-col">
-              <div className="bg-[#87A644] text-white w-[70px] h-[70px] rounded-full flex justify-center items-center">3</div>
-              <span className="ml-2">Dados do locatário</span>
-            </div>
-            <div className="bar absolute w-[85%] h-[4px] bg-[#ccc] top-[37%] right-[50%] translate-x-[50%]">
-              <div className="absolute w-[100%] h-full left-0 bg-[#87A644]"></div>
-            </div>
-          </div>
-
           <form className="flex flex-wrap gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col w-full">
               <label className="block mb-2">Já tem os dados do locatário?</label>
@@ -173,6 +214,37 @@ const FourthForm = () => {
                     </div>
                   </div>
                 )}
+                <div className="flex w-full gap-4">
+                  <div className="w-full">
+                    <label className="block mb-2">Estado Civil</label>
+                    <div className="relative">
+                      <select
+                        value={locatarioEstadoCivil}
+                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                        onChange={(e) => setLocatarioEstadoCivil(e.target.value)}
+                      >
+                        <option value="">Selecione o estado civil</option>
+                        <option value="Solteiro">Solteiro</option>
+                        <option value="Casado">Casado</option>
+                        <option value="Divorciado">Divorciado</option>
+                        <option value="Viúvo">Viúvo</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <ClickSvgIcon className="fill-[#87A644] ml-[10px]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full">
+                    <label className="block mb-2">Data de Nascimento</label>
+                    <input
+                      type="date"
+                      className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                      value={locatarioDataNascimento}
+                      onChange={(e) => setLocatarioDataNascimento(e.target.value)}
+                    />
+                  </div>
+                </div>
 
                 <div className="flex flex-col w-full">
                   <label className="block mb-2">Nome completo</label>
@@ -230,29 +302,7 @@ const FourthForm = () => {
                   </div>
                 </div>
 
-                <div className="flex w-full gap-4">
-                  <div className="w-full">
-                    <label className="block mb-2">Estado Civil</label>
-                    <input
-                      type="text"
-                      className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                      placeholder="Digite o estado civil"
-                      value={locatarioEstadoCivil}
-                      onChange={(e) => setLocatarioEstadoCivil(e.target.value)}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <label className="block mb-2">Data de nascimento</label>
-                    <input
-                      type="text"
-                      className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                      placeholder="DD-MM-AAAA"
-                      value={locatarioDataNascimento}
-                      onChange={(e) => setLocatarioDataNascimento(e.target.value)}
-                    />
-                  </div>
-                </div>
-
+                {/* Adicionando mais campos obrigatórios */}
                 <div className="flex w-full gap-4">
                   <div className="w-full">
                     <label className="block mb-2">CPF</label>
@@ -354,11 +404,67 @@ const FourthForm = () => {
                     />
                   </div>
                 </div>
+
+                {/* Campos de upload de arquivo */}
+                <div className="w-full">
+                  <label className="block mb-2">Anexar CPF/RG</label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setAnexoCpfRgMotoristaLocatario(e.target.files ? e.target.files[0] : undefined)}
+                  />
+                </div>
+
+                <div className="w-full">
+                  <label className="block mb-2">Anexar Comprovante de Estado Civil</label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setAnexoEstadoCivilLocatario(e.target.files ? e.target.files[0] : undefined)}
+                  />
+                </div>
+
+                <div className="w-full">
+                  <label className="block mb-2">Anexar Comprovante de Residência</label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setAnexoResidenciaLocatario(e.target.files ? e.target.files[0] : undefined)}
+                  />
+                </div>
+
+                {isLocatarioPessoaJuridica && (
+                  <>
+                    <div className="w-full">
+                      <label className="block mb-2">Anexar Contrato Social</label>
+                      <input
+                        type="file"
+                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setAnexoContratoSocialLocatario(e.target.files ? e.target.files[0] : undefined)}
+                      />
+                    </div>
+
+                    <div className="w-full">
+                      <label className="block mb-2">Anexar Último Balanço</label>
+                      <input
+                        type="file"
+                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setAnexoUltimoBalancoLocatario(e.target.files ? e.target.files[0] : undefined)}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="col-span-2 flex justify-end">
+                  <Button type="submit">Enviar</Button>
+                </div>
               </>
             )}
-            <div className="col-span-2 flex justify-end">
-              <Button type="submit">Enviar</Button>
-            </div>
           </form>
         </div>
       </div>

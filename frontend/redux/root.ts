@@ -1,9 +1,11 @@
+// redux/root.ts
 import { combineReducers } from "@reduxjs/toolkit";
-import boardReducer from "./boardSlice"; // Importa o reducer do board
+import formularioReducer from "./formularioSlice";
+import boardReducer from "./boardSlice";
 
-// Combina os reducers em um único rootReducer
 const rootReducer = combineReducers({
-  boards: boardReducer, // Junta o reducer de boards
+  formulario: formularioReducer,
+  boards: boardReducer,
 });
 
 export default rootReducer;

@@ -3,22 +3,45 @@ import ClickSvgIcon from "@/assets/ClickIcon";
 import LandingPageHeaderForm from "@/components/LandingPageHeaderForm";
 import { Button } from "@/components/ui/button";
 import React, { Fragment, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation"; // Adicionar useSearchParams
+import { useToast } from "@/components/ui/use-toast"; // Importação do toast
+import api from "@/services/api"; // Certifique-se de importar corretamente
 
 const ThirdForm = () => {
   const router = useRouter();
-  // Estado para armazenar os dados do localStorage
-  const [dadosFormulario, setDadosFormulario] = useState<any>(null);
+  const searchParams = useSearchParams(); // Obter parâmetros da URL
+  const { toast } = useToast(); // Função para usar o toast
 
-  // Estados para capturar os novos dados preenchidos no ThirdForm
+  // Obter o cardId dos parâmetros da URL
+  const [cardId, setCardId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const idFromParams = searchParams.get("cardId");
+
+    console.log("ID from URL parameters:", idFromParams); // Verifique se o ID está sendo capturado
+
+    if (!idFromParams) {
+      toast({
+        title: "Erro",
+        description: "ID do card não encontrado. Redirecionando para o início.",
+        variant: "destructive",
+      });
+      router.push("/"); // Redireciona para outra página
+    } else {
+      setCardId(parseInt(idFromParams)); // Armazena o cardId no estado
+    }
+  }, [router, searchParams, toast]);
+
+  // Estados para capturar os dados de ImovelDetalhes
   const [finalidade, setFinalidade] = useState("Aluguel");
-  const [iptu, setIptu] = useState("Pago 2024");
-  const [agua, setAgua] = useState("");
-  const [gas, setGas] = useState("");
+  const [tipoImovel, setTipoImovel] = useState("Residencial");
   const [valorAluguel, setValorAluguel] = useState("");
   const [valorCondominio, setValorCondominio] = useState("");
   const [valorIptu, setValorIptu] = useState("");
-  const [telefoneAdm, setTelefoneAdm] = useState("");
+  const [agua, setAgua] = useState("");
+  const [gas, setGas] = useState("");
+  const [administradorNome, setAdministradorNome] = useState("");
+  const [administradorTelefone, setAdministradorTelefone] = useState("");
   const [cepImovel, setCepImovel] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
@@ -27,53 +50,90 @@ const ThirdForm = () => {
   const [complemento, setComplemento] = useState("");
   const [numero, setNumero] = useState("");
 
-  useEffect(() => {
-    // Recuperar os dados do localStorage ao montar o componente
-    const dados = localStorage.getItem("dadosFormulario");
-    if (dados) {
-      setDadosFormulario(JSON.parse(dados)); // Armazenar os dados recuperados no estado
-    }
-  }, []);
-
-  useEffect(() => {
-    // Exibir o valor atualizado de dadosFormulario após a atualização do estado
-  }, [dadosFormulario]); // Executa o console.log sempre que dadosFormulario for atualizado
+  // Estados para arquivos anexados
+  const [anexoCondominio, setAnexoCondominio] = useState<File | undefined>(undefined);
+  const [anexoIptu, setAnexoIptu] = useState<File | undefined>(undefined);
+  const [anexoAgua, setAnexoAgua] = useState<File | undefined>(undefined);
+  const [anexoLuz, setAnexoLuz] = useState<File | undefined>(undefined);
+  const [anexoEscritura, setAnexoEscritura] = useState<File | undefined>(undefined);
 
   // Função para lidar com o envio do formulário
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Dados preenchidos no ThirdForm
-    const novosDados = {
-      finalidade,
-      valorAluguel,
-      valorCondominio,
-      valorIptu,
-      agua,
-      gas,
-      telefoneAdm,
-      cepImovel,
-      cidade,
-      estado,
-      bairro,
-      endereco,
-      numero,
-      complemento,
-    };
+    if (!valorAluguel || !valorCondominio || !valorIptu || !cepImovel || !bairro || !endereco || !numero) {
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Combinar os dados recuperados do SecondForm (localStorage) com os dados do ThirdForm
-    const dadosAtualizados = {
-      ...dadosFormulario, // Dados do SecondForm
-      ...novosDados, // Dados do ThirdForm
-    };
-    console.log(novosDados);
-    // Atualizar o localStorage com os dados combinados
-    localStorage.setItem("dadosFormulario", JSON.stringify(dadosAtualizados));
+    if (!cardId) {
+      toast({
+        title: "Erro no envio",
+        description: "ID do card não está disponível.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setTimeout(() => {
-      // Redirecionar para a próxima página usando o router do next
-      router.push("/formulariopartetres");
-    }, 100);
+    const formData = new FormData();
+
+    // Adiciona o cardId e os dados do formulário
+    formData.append("cardId", cardId.toString());
+    formData.append("finalidade", finalidade);
+    formData.append("tipoImovel", tipoImovel);
+    formData.append("valorAluguel", valorAluguel);
+    formData.append("valorCondominio", valorCondominio);
+    formData.append("valorIptu", valorIptu);
+    formData.append("agua", agua);
+    formData.append("gas", gas);
+    formData.append("administradorNome", administradorNome);
+    formData.append("administradorTelefone", administradorTelefone);
+    formData.append("cepImovel", cepImovel);
+    formData.append("cidade", cidade);
+    formData.append("estado", estado);
+    formData.append("bairro", bairro);
+    formData.append("endereco", endereco);
+    formData.append("numero", numero);
+    formData.append("complemento", complemento);
+
+    // Adiciona os arquivos se eles existirem
+    if (anexoCondominio) formData.append("anexoCondominio", anexoCondominio);
+    if (anexoIptu) formData.append("anexoIptu", anexoIptu);
+    if (anexoAgua) formData.append("anexoAgua", anexoAgua);
+    if (anexoLuz) formData.append("anexoLuz", anexoLuz);
+    if (anexoEscritura) formData.append("anexoEscritura", anexoEscritura);
+
+    try {
+      // Enviar os dados para a rota do backend
+      const response = await api.post("/saveImovelDetalhesToCard", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Exibir toast de sucesso
+      toast({
+        title: "Formulário enviado",
+        description: "Os dados do imóvel foram salvos com sucesso.",
+        variant: "default",
+      });
+
+      // Redirecionar para o próximo formulário (locatário)
+      setTimeout(() => {
+        router.push(`/formulariopartetres?cardId=${cardId}`);
+      }, 100);
+    } catch (error) {
+      // Exibir toast de erro
+      toast({
+        title: "Erro no envio",
+        description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -81,25 +141,8 @@ const ThirdForm = () => {
       <LandingPageHeaderForm />
       <div className="min-h-screen flex flex-col items-center mt-10 ">
         <div className="w-full max-w-4xl ">
-          <div className="flex justify-between items-center mb-6 relative">
-            <div className="relative z-10 flex items-center flex-col">
-              <div className="bg-[#87A644] text-white w-[70px] h-[70px] rounded-full flex justify-center items-center">1</div>
-              <span className="ml-2">Dados do proprietário</span>
-            </div>
-            <div className="relative z-10 flex items-center flex-col">
-              <div className="bg-[#87A644] text-white w-[70px] h-[70px] rounded-full flex justify-center items-center">2</div>
-              <span className="ml-2">Informações do imóvel</span>
-            </div>
-            <div className="relative z-10 flex items-center flex-col">
-              <div className="bg-[#ccc] text-white w-[70px] h-[70px] rounded-full flex justify-center items-center">3</div>
-              <span className="ml-2">Dados do locatário</span>
-            </div>
-            <div className="bar absolute w-[85%] h-[4px] bg-[#ccc] top-[37%] right-[50%] translate-x-[50%]">
-              <div className="absolute w-[50%] h-full left-0 bg-[#87A644]"></div>
-            </div>
-          </div>
-
           <form className="flex flex-wrap gap-4" onSubmit={handleSubmit}>
+            {/* Campos de Finalidade e Tipo de Imóvel */}
             <div className="flex flex-col w-full">
               <label className="block mb-2">Finalidade do imóvel</label>
               <div className="relative">
@@ -108,14 +151,33 @@ const ThirdForm = () => {
                   className="w-full border border-[#ccc] appearance-none rounded-2xl px-10 py-4"
                   onChange={(e) => setFinalidade(e.target.value)}
                 >
-                  <option value="Alugar">Alugar</option>
-                  <option value="Vender">Vender</option>
+                  <option value="Aluguel">Aluguel</option>
+                  <option value="Venda">Venda</option>
                 </select>
                 <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                   <ClickSvgIcon className="fill-[#87A644] ml-[10px]" />
                 </div>
               </div>
             </div>
+
+            <div className="flex flex-col w-full">
+              <label className="block mb-2">Tipo de imóvel</label>
+              <div className="relative">
+                <select
+                  value={tipoImovel}
+                  className="w-full border border-[#ccc] appearance-none rounded-2xl px-10 py-4"
+                  onChange={(e) => setTipoImovel(e.target.value)}
+                >
+                  <option value="Residencial">Residencial</option>
+                  <option value="Comercial">Comercial</option>
+                </select>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                  <ClickSvgIcon className="fill-[#87A644] ml-[10px]" />
+                </div>
+              </div>
+            </div>
+
+            {/* Campos de valor do aluguel e condomínio */}
             <div className="flex w-full gap-4">
               <div className="w-full">
                 <label className="block mb-2">Valor do aluguel</label>
@@ -138,38 +200,25 @@ const ThirdForm = () => {
                 />
               </div>
             </div>
+
+            {/* IPTU e valor do IPTU */}
             <div className="flex w-full gap-4">
-              <div className="flex flex-col w-full">
-                <label className="block mb-2">IPTU</label>
-                <div className="relative">
-                  <select
-                    value={iptu}
-                    className="w-full border border-[#ccc] appearance-none rounded-2xl px-10 py-4"
-                    onChange={(e) => setIptu(e.target.value)}
-                  >
-                    <option value="Pago 2024">Pago 2024</option>
-                    <option value="Não pago 2024">Não pago 2024</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                    <ClickSvgIcon className="fill-[#87A644] ml-[10px]" />
-                  </div>
-                </div>
-              </div>
               <div className="w-full">
                 <label className="block mb-2">Valor do IPTU</label>
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                  placeholder="Digite o valor do condomínio (Ex: 150)"
+                  placeholder="Digite o valor do IPTU (Ex: 300)"
                   value={valorIptu}
                   onChange={(e) => setValorIptu(e.target.value)}
                 />
               </div>
             </div>
 
+            {/* Água e Gás */}
             <div className="flex w-full gap-4">
               <div className="w-full">
-                <label className="block mb-2">Valor da agua</label>
+                <label className="block mb-2">Valor da água</label>
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
@@ -178,43 +227,55 @@ const ThirdForm = () => {
                   onChange={(e) => setAgua(e.target.value)}
                 />
               </div>
-              <div className="flex flex-col w-full">
-                <div className="w-full">
-                  <label className="block mb-2">Valor do Gás</label>
-                  <input
-                    type="text"
-                    className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                    placeholder="Digite o valor do gás (Ex: 150)"
-                    value={gas}
-                    onChange={(e) => setGas(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex w-full gap-4">
               <div className="w-full">
-                <label className="block mb-2">Administrador do Condomínio e Telefone</label>
+                <label className="block mb-2">Valor do gás</label>
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                  placeholder="Nome e Telefone"
-                  value={telefoneAdm}
-                  onChange={(e) => setTelefoneAdm(e.target.value)}
+                  placeholder="Digite o valor do gás (Ex: 150)"
+                  value={gas}
+                  onChange={(e) => setGas(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Administrador do Condomínio e Telefone */}
+            <div className="flex w-full gap-4">
+              <div className="w-full">
+                <label className="block mb-2">Administrador do Condomínio</label>
+                <input
+                  type="text"
+                  className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
+                  placeholder="Nome do administrador"
+                  value={administradorNome}
+                  onChange={(e) => setAdministradorNome(e.target.value)}
+                />
+              </div>
+              <div className="w-full">
+                <label className="block mb-2">Telefone do Administrador</label>
+                <input
+                  type="text"
+                  className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
+                  placeholder="Telefone do administrador"
+                  value={administradorTelefone}
+                  onChange={(e) => setAdministradorTelefone(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* CEP, Cidade e Estado */}
+            <div className="flex w-full gap-4">
               <div className="w-full">
                 <label className="block mb-2">CEP</label>
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                  placeholder="Digite o CEP do imóvel"
+                  placeholder="Digite o CEP"
                   value={cepImovel}
                   onChange={(e) => setCepImovel(e.target.value)}
                 />
               </div>
             </div>
-
             <div className="flex w-full gap-4">
               <div className="w-full">
                 <label className="block mb-2">Cidade</label>
@@ -231,20 +292,21 @@ const ThirdForm = () => {
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                  placeholder="Digite o seu estado"
+                  placeholder="Digite o estado"
                   value={estado}
                   onChange={(e) => setEstado(e.target.value)}
                 />
               </div>
             </div>
 
+            {/* Bairro e Endereço */}
             <div className="flex w-full gap-4">
               <div className="w-full">
                 <label className="block mb-2">Bairro</label>
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                  placeholder="Digite o seu bairro"
+                  placeholder="Digite o bairro"
                   value={bairro}
                   onChange={(e) => setBairro(e.target.value)}
                 />
@@ -254,13 +316,14 @@ const ThirdForm = () => {
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl  px-10 py-4"
-                  placeholder="Digite o seu Endereço"
+                  placeholder="Digite o endereço"
                   value={endereco}
                   onChange={(e) => setEndereco(e.target.value)}
                 />
               </div>
             </div>
 
+            {/* Número e Complemento */}
             <div className="flex w-full gap-4">
               <div className="w-full">
                 <label className="block mb-2">Número</label>
@@ -282,6 +345,57 @@ const ThirdForm = () => {
                   onChange={(e) => setComplemento(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Campos de upload de arquivo */}
+            <div className="w-full">
+              <label className="block mb-2">Anexar Condomínio</label>
+              <input
+                type="file"
+                className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                accept="image/*,application/pdf"
+                onChange={(e) => setAnexoCondominio(e.target.files ? e.target.files[0] : undefined)}
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="block mb-2">Anexar IPTU</label>
+              <input
+                type="file"
+                className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                accept="image/*,application/pdf"
+                onChange={(e) => setAnexoIptu(e.target.files ? e.target.files[0] : undefined)}
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="block mb-2">Anexar Comprovante de Água</label>
+              <input
+                type="file"
+                className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                accept="image/*,application/pdf"
+                onChange={(e) => setAnexoAgua(e.target.files ? e.target.files[0] : undefined)}
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="block mb-2">Anexar Comprovante de Luz</label>
+              <input
+                type="file"
+                className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                accept="image/*,application/pdf"
+                onChange={(e) => setAnexoLuz(e.target.files ? e.target.files[0] : undefined)}
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="block mb-2">Anexar Escritura do Imóvel</label>
+              <input
+                type="file"
+                className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                accept="image/*,application/pdf"
+                onChange={(e) => setAnexoEscritura(e.target.files ? e.target.files[0] : undefined)}
+              />
             </div>
 
             <div className="col-span-2 flex justify-end">

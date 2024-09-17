@@ -5,10 +5,25 @@ import KanbanCard from "./kanbancard";
 import { Button } from "./ui/button";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
+import api from "@/services/api"; // Certifique-se de usar a instância configurada
 import { Textarea } from "./ui/textarea";
 
-const KanbanColumn = ({ column, onCardMove }: { column: any; onCardMove: (cardId: string, targetColumnId: string) => void }) => {
+const KanbanColumn = ({
+  column,
+  boardName,
+  columns, // Recebendo as colunas aqui
+  onCardMove,
+  onColumnNameChange, // Adicionando a função de callback para atualizar o nome da coluna no frontend
+}: {
+  column: any;
+  boardName: string;
+  columns: any[]; // Lista de todas as colunas do board
+  onCardMove: (cardId: string, targetColumnId: string) => void;
+  onColumnNameChange: (columnId: string, newColumnName: string) => void; // Callback para alterar o nome da coluna
+}) => {
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [newColumnName, setNewColumnName] = useState(column.name); // Armazena o novo nome da coluna
   const [newCardTitle, setNewCardTitle] = useState("");
   const [newCardDetails, setNewCardDetails] = useState("");
 
@@ -18,12 +33,27 @@ const KanbanColumn = ({ column, onCardMove }: { column: any; onCardMove: (cardId
   const [, drop] = useDrop({
     accept: "CARD",
     drop: (item: { id: string }) => {
-      // Chamar a função que vai mover o card (onCardMove) passando o id do card e da coluna de destino
       if (item) {
         onCardMove(item.id, column.id);
       }
     },
   });
+
+  // Função para editar o nome da coluna
+  const handleEditColumnName = async () => {
+    try {
+      // Faz a requisição para atualizar o nome da coluna no backend
+      await api.patch(`/columns/${column.id}`, { name: newColumnName });
+
+      // Atualiza o nome da coluna no frontend chamando a função de callback
+      onColumnNameChange(column.id, newColumnName);
+
+      // Fechar o diálogo após a edição
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Erro ao editar nome da coluna:", error);
+    }
+  };
 
   const handleAddCard = () => {
     const newCard = { id: Date.now().toString(), title: newCardTitle, details: newCardDetails };
@@ -38,14 +68,23 @@ const KanbanColumn = ({ column, onCardMove }: { column: any; onCardMove: (cardId
   return (
     <Fragment>
       <div ref={columnRef} className="bg-[#F7F8F3] p-[20px] rounded-lg w-full max-w-[428px]">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-5">
           <p>{column.name}</p>
           <p className="ml-[20px] text-[#D9D9D9]">Total: {column.cards?.length || 0}</p>
+          <Button className="ml-[20px] bg-[#87A644]" onClick={() => setIsEditDialogOpen(true)}>
+            Editar nome
+          </Button>
         </div>
 
         {/* Renderizar os cards dentro da coluna */}
         {column.cards?.map((card: any) => (
-          <KanbanCard key={card.id} card={card} />
+          <KanbanCard
+            key={card.id}
+            card={card}
+            boardName={boardName}
+            columnName={column.name}
+            columns={columns} // Passando todas as colunas do board para KanbanCard
+          />
         ))}
 
         {/* Diálogo para adicionar um novo card */}
@@ -61,6 +100,21 @@ const KanbanColumn = ({ column, onCardMove }: { column: any; onCardMove: (cardId
             <Textarea value={newCardDetails} onChange={(e) => setNewCardDetails(e.target.value)} placeholder="Detalhes do card" />
             <DialogFooter>
               <Button className="bg-[#87A644] w-full" onClick={handleAddCard}>
+                Salvar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Diálogo para editar o nome da coluna */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Nome da Coluna</DialogTitle>
+            </DialogHeader>
+            <Input value={newColumnName} onChange={(e) => setNewColumnName(e.target.value)} placeholder="Novo nome da coluna" />
+            <DialogFooter>
+              <Button className="bg-[#87A644] w-full" onClick={handleEditColumnName}>
                 Salvar
               </Button>
             </DialogFooter>

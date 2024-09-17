@@ -84,6 +84,16 @@ const boardSlice = createSlice({
   },
 });
 
+// Ação assíncrona para enviar os dados do imóvel
+export const enviarDadosImovel = createAsyncThunk("formularios/enviarDadosImovel", async (dadosImovel: any, { rejectWithValue }) => {
+  try {
+    const response = await api.post("/cards/imovel", dadosImovel);
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue(error.response.data);
+  }
+});
+
 // Exportando a action para limpar o board selecionado
 export const { clearSelectedBoard } = boardSlice.actions;
 
