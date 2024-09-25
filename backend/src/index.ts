@@ -19,7 +19,7 @@ app.use(
 
 // Substitua body-parser por express.json()
 app.use(express.json()); // Isso permite que o Express processe requisições JSON
-
+app.use("/uploads", express.static("uploads"));
 // Conectando ao Prisma e inicializando o servidor
 app.listen(5000, async () => {
   try {

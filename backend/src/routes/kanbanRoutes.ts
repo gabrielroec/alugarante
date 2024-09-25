@@ -11,6 +11,13 @@ import {
   saveImovelDetalhesToCard,
   saveLocatarioToCard,
   updateColumnName,
+  getImovelByCardId,
+  updateImovelByCardId,
+  getImovelDetalhesByCardId,
+  updateImovelDetalhesByCardId,
+  getProprietarioByCardId,
+  updateProprietarioByCardId,
+  moveCardToBoard,
 } from "../controllers/kanbanControllers";
 import upload from "../middlewares/multer"; // Importando o middleware de upload
 
@@ -76,7 +83,44 @@ router.post(
   saveLocatarioToCard
 );
 
-// Adicionar a rota PATCH para editar o nome da coluna
+// Rota para buscar o imóvel de um card específico
+router.get("/imovel/card/:cardId", getImovelByCardId);
+
+router.get("/imovelDetalhes/card/:cardId", getImovelDetalhesByCardId);
+
+router.get("/proprietario/card/:cardId", getProprietarioByCardId);
+
+// Rota para atualizar o imóvel de um card específico
+router.put("/imovel/card/:cardId", updateImovelByCardId);
+
+// Rota para atualizar os detalhes do imóvel de um card específico, com suporte para arquivos
+router.put(
+  "/imovelDetalhes/card/:cardId",
+  upload.fields([
+    { name: "anexoCondominio", maxCount: 1 },
+    { name: "anexoIptu", maxCount: 1 },
+    { name: "anexoAgua", maxCount: 1 },
+    { name: "anexoLuz", maxCount: 1 },
+    { name: "anexoEscritura", maxCount: 1 },
+  ]),
+  updateImovelDetalhesByCardId
+);
+
+// Rota para atualizar o proprietário com arquivos
+router.put(
+  "/proprietario/card/:cardId",
+  upload.fields([
+    { name: "anexoCpfRgMotorista", maxCount: 1 },
+    { name: "anexoCpfRgMotoristaConj", maxCount: 1 },
+    { name: "anexoEstadoCivil", maxCount: 1 },
+    { name: "anexoResidencia", maxCount: 1 },
+    { name: "anexoContratoSocial", maxCount: 1 },
+  ]),
+  updateProprietarioByCardId
+);
+
 router.patch("/columns/:columnId", updateColumnName);
+
+router.post("/cards/:cardId/moveBoard", moveCardToBoard);
 
 export default router;

@@ -439,3 +439,281 @@ export const updateColumnName = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Erro ao atualizar nome da coluna" });
   }
 };
+
+// Função para pegar os dados do imóvel de um card específico
+export const getImovelByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+
+  try {
+    const imovel = await prisma.imovel.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!imovel) {
+      return res.status(404).json({ message: "Imóvel não encontrado para este card" });
+    }
+
+    res.status(200).json(imovel);
+  } catch (error) {
+    console.error("Erro ao buscar imóvel:", error);
+    res.status(500).json({ message: "Erro ao buscar imóvel" });
+  }
+};
+
+// Função para editar as informações do imóvel
+export const updateImovelByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const { tipoImovelSelecionado, valorAluguel, valorIptu, valorCondominio, valorGas, planoSelecionado, valorMensal, taxaSetup } = req.body;
+
+  try {
+    const updatedImovel = await prisma.imovel.update({
+      where: { cardId: parseInt(cardId) },
+      data: {
+        tipoImovelSelecionado,
+        valorAluguel: parseFloat(valorAluguel),
+        valorIptu: parseFloat(valorIptu),
+        valorCondominio: parseFloat(valorCondominio),
+        valorGas: parseFloat(valorGas),
+        planoSelecionado,
+        valorMensal: parseFloat(valorMensal),
+        taxaSetup: parseFloat(taxaSetup),
+      },
+    });
+
+    res.status(200).json(updatedImovel);
+  } catch (error) {
+    console.error("Erro ao atualizar imóvel:", error);
+    res.status(500).json({ message: "Erro ao atualizar imóvel" });
+  }
+};
+
+// Função para pegar os detalhes do imóvel de um card específico
+export const getImovelDetalhesByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+
+  try {
+    const imovelDetalhes = await prisma.imovelDetalhes.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!imovelDetalhes) {
+      return res.status(404).json({ message: "Detalhes do Imóvel não encontrados para este card" });
+    }
+
+    res.status(200).json(imovelDetalhes);
+  } catch (error) {
+    console.error("Erro ao buscar detalhes do imóvel:", error);
+    res.status(500).json({ message: "Erro ao buscar detalhes do imóvel" });
+  }
+};
+
+export const updateImovelDetalhesByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const {
+    finalidade,
+    tipoImovel,
+    valorAluguel,
+    valorCondominio,
+    valorIptu,
+    valorAgua,
+    valorGas,
+    administradorNome,
+    administradorTelefone,
+    cepImovel,
+    cidade,
+    estado,
+    bairro,
+    endereco,
+    numero,
+    complemento,
+  } = req.body;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  try {
+    // Primeiro, recuperamos os detalhes existentes do imóvel para preservar os arquivos existentes
+    const existingImovelDetalhes = await prisma.imovelDetalhes.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!existingImovelDetalhes) {
+      return res.status(404).json({ message: "Detalhes do Imóvel não encontrados para este card" });
+    }
+
+    const updatedImovelDetalhes = await prisma.imovelDetalhes.update({
+      where: { cardId: parseInt(cardId) },
+      data: {
+        finalidade,
+        tipoImovel,
+        valorAluguel: parseFloat(valorAluguel),
+        valorCondominio: parseFloat(valorCondominio),
+        valorIptu: valorIptu ? parseFloat(valorIptu) : existingImovelDetalhes.valorIptu, // Preserva o valor atual se não for enviado
+        valorAgua: valorAgua ? parseFloat(valorAgua) : existingImovelDetalhes.valorAgua, // Preserva o valor atual se não for enviado
+        valorGas: parseFloat(valorGas),
+        administradorNome,
+        administradorTelefone,
+        cepImovel,
+        cidade,
+        estado,
+        bairro,
+        endereco,
+        numero,
+        complemento,
+        anexoCondominio: files.anexoCondominio ? files.anexoCondominio[0].path : existingImovelDetalhes.anexoCondominio, // Preserva o anexo atual se não for enviado
+        anexoIptu: files.anexoIptu ? files.anexoIptu[0].path : existingImovelDetalhes.anexoIptu, // Preserva o anexo atual
+        anexoAgua: files.anexoAgua ? files.anexoAgua[0].path : existingImovelDetalhes.anexoAgua, // Preserva o anexo atual
+        anexoLuz: files.anexoLuz ? files.anexoLuz[0].path : existingImovelDetalhes.anexoLuz, // Preserva o anexo atual
+        anexoEscritura: files.anexoEscritura ? files.anexoEscritura[0].path : existingImovelDetalhes.anexoEscritura, // Preserva o anexo atual
+      },
+    });
+
+    res.status(200).json(updatedImovelDetalhes);
+  } catch (error) {
+    console.error("Erro ao atualizar detalhes do imóvel:", error);
+    res.status(500).json({ message: "Erro ao atualizar detalhes do imóvel" });
+  }
+};
+
+export const getProprietarioByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+
+  try {
+    const proprietario = await prisma.proprietario.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!proprietario) {
+      return res.status(404).json({ message: "Proprietário não encontrado para este card" });
+    }
+
+    res.status(200).json(proprietario);
+  } catch (error) {
+    console.error("Erro ao buscar proprietário:", error);
+    res.status(500).json({ message: "Erro ao buscar proprietário" });
+  }
+};
+
+export const updateProprietarioByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const {
+    tipoPessoa,
+    cnpj,
+    razaoSocial,
+    estadoCivil,
+    cpfConjuge,
+    nomeCompleto,
+    nomeCompletoConjuge,
+    email,
+    telefone,
+    nacionalidade,
+    naturalidade,
+    dataNascimento,
+    cpf,
+    rg,
+    orgaoExpedidor,
+    emailConjuge,
+    telefoneConjuge,
+    nacionalidadeConjuge,
+    naturalidadeConjuge,
+    dataNascimentoConjuge,
+    rgConjuge,
+    orgaoExpedidorConjuge,
+    cep,
+    estado,
+    bairro,
+    endereco,
+    numero,
+    complemento,
+  } = req.body;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  try {
+    // Primeiro, recuperamos o proprietário existente para preservar os arquivos atuais
+    const existingProprietario = await prisma.proprietario.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!existingProprietario) {
+      return res.status(404).json({ message: "Proprietário não encontrado para este card" });
+    }
+
+    const updatedProprietario = await prisma.proprietario.update({
+      where: { cardId: parseInt(cardId) },
+      data: {
+        tipoPessoa,
+        cnpj,
+        razaoSocial,
+        estadoCivil,
+        cpfConjuge,
+        nomeCompleto,
+        nomeCompletoConjuge,
+        email,
+        telefone,
+        nacionalidade,
+        naturalidade,
+        dataNascimento: new Date(dataNascimento),
+        cpf,
+        rg,
+        orgaoExpedidor,
+        emailConjuge,
+        telefoneConjuge,
+        nacionalidadeConjuge,
+        naturalidadeConjuge,
+        dataNascimentoConjuge: dataNascimentoConjuge ? new Date(dataNascimentoConjuge) : existingProprietario.dataNascimentoConjuge,
+        rgConjuge,
+        orgaoExpedidorConjuge,
+        cep,
+        estado,
+        bairro,
+        endereco,
+        numero,
+        complemento,
+        anexoCpfRgMotorista: files.anexoCpfRgMotorista ? files.anexoCpfRgMotorista[0].path : existingProprietario.anexoCpfRgMotorista,
+        anexoCpfRgMotoristaConj: files.anexoCpfRgMotoristaConj
+          ? files.anexoCpfRgMotoristaConj[0].path
+          : existingProprietario.anexoCpfRgMotoristaConj,
+        anexoEstadoCivil: files.anexoEstadoCivil ? files.anexoEstadoCivil[0].path : existingProprietario.anexoEstadoCivil,
+        anexoResidencia: files.anexoResidencia ? files.anexoResidencia[0].path : existingProprietario.anexoResidencia,
+        anexoContratoSocial: files.anexoContratoSocial ? files.anexoContratoSocial[0].path : existingProprietario.anexoContratoSocial,
+      },
+    });
+
+    res.status(200).json(updatedProprietario);
+  } catch (error) {
+    console.error("Erro ao atualizar proprietário:", error);
+    res.status(500).json({ message: "Erro ao atualizar proprietário" });
+  }
+};
+
+export const moveCardToBoard = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const { targetBoardId } = req.body;
+
+  try {
+    // Encontre a primeira coluna do board de destino
+    const targetBoard = await prisma.board.findUnique({
+      where: { id: parseInt(targetBoardId) },
+      include: { columns: { orderBy: { id: "asc" } } },
+    });
+
+    if (!targetBoard || targetBoard.columns.length === 0) {
+      return res.status(400).json({ message: "Board ou colunas não encontradas." });
+    }
+
+    const firstColumn = targetBoard.columns[0];
+
+    // Atualize o card com o novo columnId da primeira coluna do board de destino
+    const updatedCard = await prisma.card.update({
+      where: { id: parseInt(cardId) },
+      data: {
+        columnId: firstColumn.id,
+      },
+    });
+
+    res.status(200).json(updatedCard);
+  } catch (error) {
+    console.error("Erro ao mover card para outro board:", error);
+    res.status(500).json({ message: "Erro ao mover card para outro board" });
+  }
+};
