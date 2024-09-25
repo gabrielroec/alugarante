@@ -5,22 +5,34 @@ import KanbanCard from "./kanbancard";
 import { Button } from "./ui/button";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
-import api from "@/services/api"; // Certifique-se de usar a instância configurada
+import api from "@/services/api";
 import { Textarea } from "./ui/textarea";
+
+interface Column {
+  id: number;
+  name: string;
+  cards: any[];
+}
+
+interface KanbanColumnProps {
+  column: Column;
+  boardId: number;
+  boardName: string;
+  columns: Column[];
+  onCardMove: (cardId: string, targetColumnId: number) => void;
+  onColumnNameChange: (columnId: number, newColumnName: string) => void;
+  onCardRemoved: (cardId: string) => void; // Adicione esta linha
+}
 
 const KanbanColumn = ({
   column,
+  boardId,
   boardName,
-  columns, // Recebendo as colunas aqui
+  columns,
   onCardMove,
-  onColumnNameChange, // Adicionando a função de callback para atualizar o nome da coluna no frontend
-}: {
-  column: any;
-  boardName: string;
-  columns: any[]; // Lista de todas as colunas do board
-  onCardMove: (cardId: string, targetColumnId: string) => void;
-  onColumnNameChange: (columnId: string, newColumnName: string) => void; // Callback para alterar o nome da coluna
-}) => {
+  onColumnNameChange,
+  onCardRemoved, // Receba a prop aqui
+}: KanbanColumnProps) => {
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState(column.name); // Armazena o novo nome da coluna
@@ -77,13 +89,14 @@ const KanbanColumn = ({
         </div>
 
         {/* Renderizar os cards dentro da coluna */}
-        {column.cards?.map((card: any) => (
+        {column.cards.map((card) => (
           <KanbanCard
             key={card.id}
             card={card}
-            boardName={boardName}
+            boardId={boardId}
             columnName={column.name}
-            columns={columns} // Passando todas as colunas do board para KanbanCard
+            columns={columns}
+            onCardRemoved={onCardRemoved} // Passe a prop para o KanbanCard
           />
         ))}
 

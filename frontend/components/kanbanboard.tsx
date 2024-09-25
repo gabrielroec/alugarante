@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import KanbanColumn from "./kanbancolumn";
 
 // Função para mover o card entre colunas e atualizar no backend
-const moveCard = async (cardId: string, targetColumnId: string, dispatch: AppDispatch, boardId: string) => {
+const moveCard = async (cardId: string, targetColumnId: number, dispatch: AppDispatch, boardId: number) => {
   try {
     // Chamada para o backend para atualizar o card com o novo columnId
     const response = await fetch(`http://localhost:5000/api/cards/${cardId}/move`, {
@@ -33,10 +33,9 @@ const KanbanBoard = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [columns, setColumns] = useState<any[]>([]);
 
-  // Carregar o board inicial quando o componente é montado
   useEffect(() => {
     if (!selectedBoard) {
-      dispatch(fetchBoardById("1")); // Carregar o board com ID 1 como padrão
+      dispatch(fetchBoardById(1)); // Carregar o board com ID 1 como padrão
     }
   }, [dispatch, selectedBoard]);
 
@@ -47,8 +46,23 @@ const KanbanBoard = () => {
     }
   }, [selectedBoard]);
 
+  const boardId = selectedBoard ? Number(selectedBoard.id) : null;
+
+  if (!boardId) {
+    return <p>Nenhum board selecionado.</p>;
+  }
+
+  const handleCardRemoved = (cardId: string) => {
+    setColumns((prevColumns) =>
+      prevColumns.map((col) => ({
+        ...col,
+        cards: col.cards.filter((card: any) => card.id !== cardId),
+      }))
+    );
+  };
+
   // Função chamada quando um card for movido para uma nova coluna
-  const handleCardMove = (cardId: string, targetColumnId: string) => {
+  const handleCardMove = (cardId: string, targetColumnId: number) => {
     setColumns((prevColumns) =>
       prevColumns.map((col) => {
         const newCards = col.cards.filter((card: any) => card.id !== cardId); // Remove o card da coluna antiga
@@ -66,11 +80,11 @@ const KanbanBoard = () => {
     );
 
     // Chamar a função para mover o card no backend e atualizar o estado global
-    moveCard(cardId, targetColumnId, dispatch, selectedBoard!.id);
+    moveCard(cardId, targetColumnId, dispatch, boardId);
   };
 
   // Função para atualizar o nome da coluna localmente
-  const handleColumnNameChange = (columnId: string, newName: string) => {
+  const handleColumnNameChange = (columnId: number, newName: string) => {
     setColumns((prevColumns) => prevColumns.map((col) => (col.id === columnId ? { ...col, name: newName } : col)));
   };
 
@@ -88,10 +102,12 @@ const KanbanBoard = () => {
         <KanbanColumn
           key={column.id}
           column={column}
-          boardName={selectedBoard!.name} // Passando o nome do board
-          columns={columns} // Certifique-se de passar todas as colunas para o KanbanColumn
+          boardId={boardId}
+          boardName={selectedBoard!.name}
+          columns={columns}
           onCardMove={handleCardMove}
           onColumnNameChange={handleColumnNameChange}
+          onCardRemoved={handleCardRemoved} // Certifique-se de que esta linha está presente
         />
       ))}
     </div>
