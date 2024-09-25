@@ -80,7 +80,9 @@ export const getCardsByColumn = async (req: Request<Params>, res: Response) => {
     });
 
     if (!cards.length) {
-      return res.status(404).json({ message: "Nenhum card encontrado para esta coluna" });
+      return res
+        .status(404)
+        .json({ message: "Nenhum card encontrado para esta coluna" });
     }
 
     return res.status(200).json(cards);
@@ -91,7 +93,10 @@ export const getCardsByColumn = async (req: Request<Params>, res: Response) => {
 };
 
 // Função para pegar todas as colunas e seus cards de um board específico
-export const getColumnsAndCardsByBoardId = async (req: Request<Params>, res: Response) => {
+export const getColumnsAndCardsByBoardId = async (
+  req: Request<Params>,
+  res: Response
+) => {
   const { boardId } = req.params;
 
   if (!boardId) {
@@ -156,7 +161,9 @@ export const createCard = async (req: Request, res: Response) => {
     });
 
     if (!board || board.columns.length === 0) {
-      return res.status(400).json({ message: "Board ou colunas não encontradas." });
+      return res
+        .status(400)
+        .json({ message: "Board ou colunas não encontradas." });
     }
 
     const primeiraColuna = board.columns[0];
@@ -176,8 +183,17 @@ export const createCard = async (req: Request, res: Response) => {
 };
 
 export const saveImovelToCard = async (req: Request, res: Response) => {
-  const { cardId, tipoImovelSelecionado, valorAluguel, valorIptu, valorCondominio, valorGas, planoSelecionado, valorMensal, taxaSetup } =
-    req.body;
+  const {
+    cardId,
+    tipoImovelSelecionado,
+    valorAluguel,
+    valorIptu,
+    valorCondominio,
+    valorGas,
+    planoSelecionado,
+    valorMensal,
+    taxaSetup,
+  } = req.body;
 
   try {
     const imovel = await prisma.imovel.create({
@@ -263,7 +279,9 @@ export const saveProprietarioToCard = async (req: Request, res: Response) => {
         telefoneConjuge,
         nacionalidadeConjuge,
         naturalidadeConjuge,
-        dataNascimentoConjuge: dataNascimentoConjuge ? new Date(dataNascimentoConjuge) : null,
+        dataNascimentoConjuge: dataNascimentoConjuge
+          ? new Date(dataNascimentoConjuge)
+          : null,
         rgConjuge,
         orgaoExpedidorConjuge,
         cep,
@@ -272,11 +290,21 @@ export const saveProprietarioToCard = async (req: Request, res: Response) => {
         endereco,
         numero,
         complemento,
-        anexoCpfRgMotorista: files.anexoCpfRgMotorista ? files.anexoCpfRgMotorista[0].path : null,
-        anexoCpfRgMotoristaConj: files.anexoCpfRgMotoristaConj ? files.anexoCpfRgMotoristaConj[0].path : null,
-        anexoEstadoCivil: files.anexoEstadoCivil ? files.anexoEstadoCivil[0].path : null,
-        anexoResidencia: files.anexoResidencia ? files.anexoResidencia[0].path : null,
-        anexoContratoSocial: files.anexoContratoSocial ? files.anexoContratoSocial[0].path : null,
+        anexoCpfRgMotorista: files.anexoCpfRgMotorista
+          ? files.anexoCpfRgMotorista[0].path
+          : null,
+        anexoCpfRgMotoristaConj: files.anexoCpfRgMotoristaConj
+          ? files.anexoCpfRgMotoristaConj[0].path
+          : null,
+        anexoEstadoCivil: files.anexoEstadoCivil
+          ? files.anexoEstadoCivil[0].path
+          : null,
+        anexoResidencia: files.anexoResidencia
+          ? files.anexoResidencia[0].path
+          : null,
+        anexoContratoSocial: files.anexoContratoSocial
+          ? files.anexoContratoSocial[0].path
+          : null,
         card: {
           connect: { id: parseInt(cardId) }, // Converte cardId para inteiro
         },
@@ -333,11 +361,15 @@ export const saveImovelDetalhesToCard = async (req: Request, res: Response) => {
         endereco,
         numero,
         complemento,
-        anexoCondominio: files.anexoCondominio ? files.anexoCondominio[0].path : null,
+        anexoCondominio: files.anexoCondominio
+          ? files.anexoCondominio[0].path
+          : null,
         anexoIptu: files.anexoIptu ? files.anexoIptu[0].path : null,
         anexoAgua: files.anexoAgua ? files.anexoAgua[0].path : null,
         anexoLuz: files.anexoLuz ? files.anexoLuz[0].path : null,
-        anexoEscritura: files.anexoEscritura ? files.anexoEscritura[0].path : null,
+        anexoEscritura: files.anexoEscritura
+          ? files.anexoEscritura[0].path
+          : null,
         card: {
           connect: { id: parseInt(cardId) }, // Certifique-se de converter o cardId para inteiro
         },
@@ -399,11 +431,21 @@ export const saveLocatarioToCard = async (req: Request, res: Response) => {
         endereco,
         numero,
         complemento,
-        anexoCpfRgMotoristaLocatario: files.anexoCpfRgMotoristaLocatario ? files.anexoCpfRgMotoristaLocatario[0].path : null,
-        anexoEstadoCivilLocatario: files.anexoEstadoCivilLocatario ? files.anexoEstadoCivilLocatario[0].path : null,
-        anexoResidenciaLocatario: files.anexoResidenciaLocatario ? files.anexoResidenciaLocatario[0].path : null,
-        anexoContratoSocialLocatario: files.anexoContratoSocialLocatario ? files.anexoContratoSocialLocatario[0].path : null,
-        anexoUltimoBalancoLocatario: files.anexoUltimoBalancoLocatario ? files.anexoUltimoBalancoLocatario[0].path : null,
+        anexoCpfRgMotoristaLocatario: files.anexoCpfRgMotoristaLocatario
+          ? files.anexoCpfRgMotoristaLocatario[0].path
+          : null,
+        anexoEstadoCivilLocatario: files.anexoEstadoCivilLocatario
+          ? files.anexoEstadoCivilLocatario[0].path
+          : null,
+        anexoResidenciaLocatario: files.anexoResidenciaLocatario
+          ? files.anexoResidenciaLocatario[0].path
+          : null,
+        anexoContratoSocialLocatario: files.anexoContratoSocialLocatario
+          ? files.anexoContratoSocialLocatario[0].path
+          : null,
+        anexoUltimoBalancoLocatario: files.anexoUltimoBalancoLocatario
+          ? files.anexoUltimoBalancoLocatario[0].path
+          : null,
         card: {
           connect: { id: parseInt(cardId) },
         },
@@ -450,7 +492,9 @@ export const getImovelByCardId = async (req: Request, res: Response) => {
     });
 
     if (!imovel) {
-      return res.status(404).json({ message: "Imóvel não encontrado para este card" });
+      return res
+        .status(404)
+        .json({ message: "Imóvel não encontrado para este card" });
     }
 
     res.status(200).json(imovel);
@@ -463,7 +507,16 @@ export const getImovelByCardId = async (req: Request, res: Response) => {
 // Função para editar as informações do imóvel
 export const updateImovelByCardId = async (req: Request, res: Response) => {
   const { cardId } = req.params;
-  const { tipoImovelSelecionado, valorAluguel, valorIptu, valorCondominio, valorGas, planoSelecionado, valorMensal, taxaSetup } = req.body;
+  const {
+    tipoImovelSelecionado,
+    valorAluguel,
+    valorIptu,
+    valorCondominio,
+    valorGas,
+    planoSelecionado,
+    valorMensal,
+    taxaSetup,
+  } = req.body;
 
   try {
     const updatedImovel = await prisma.imovel.update({
@@ -488,7 +541,10 @@ export const updateImovelByCardId = async (req: Request, res: Response) => {
 };
 
 // Função para pegar os detalhes do imóvel de um card específico
-export const getImovelDetalhesByCardId = async (req: Request, res: Response) => {
+export const getImovelDetalhesByCardId = async (
+  req: Request,
+  res: Response
+) => {
   const { cardId } = req.params;
 
   try {
@@ -497,7 +553,9 @@ export const getImovelDetalhesByCardId = async (req: Request, res: Response) => 
     });
 
     if (!imovelDetalhes) {
-      return res.status(404).json({ message: "Detalhes do Imóvel não encontrados para este card" });
+      return res
+        .status(404)
+        .json({ message: "Detalhes do Imóvel não encontrados para este card" });
     }
 
     res.status(200).json(imovelDetalhes);
@@ -507,7 +565,10 @@ export const getImovelDetalhesByCardId = async (req: Request, res: Response) => 
   }
 };
 
-export const updateImovelDetalhesByCardId = async (req: Request, res: Response) => {
+export const updateImovelDetalhesByCardId = async (
+  req: Request,
+  res: Response
+) => {
   const { cardId } = req.params;
   const {
     finalidade,
@@ -537,7 +598,9 @@ export const updateImovelDetalhesByCardId = async (req: Request, res: Response) 
     });
 
     if (!existingImovelDetalhes) {
-      return res.status(404).json({ message: "Detalhes do Imóvel não encontrados para este card" });
+      return res
+        .status(404)
+        .json({ message: "Detalhes do Imóvel não encontrados para este card" });
     }
 
     const updatedImovelDetalhes = await prisma.imovelDetalhes.update({
@@ -547,8 +610,12 @@ export const updateImovelDetalhesByCardId = async (req: Request, res: Response) 
         tipoImovel,
         valorAluguel: parseFloat(valorAluguel),
         valorCondominio: parseFloat(valorCondominio),
-        valorIptu: valorIptu ? parseFloat(valorIptu) : existingImovelDetalhes.valorIptu, // Preserva o valor atual se não for enviado
-        valorAgua: valorAgua ? parseFloat(valorAgua) : existingImovelDetalhes.valorAgua, // Preserva o valor atual se não for enviado
+        valorIptu: valorIptu
+          ? parseFloat(valorIptu)
+          : existingImovelDetalhes.valorIptu, // Preserva o valor atual se não for enviado
+        valorAgua: valorAgua
+          ? parseFloat(valorAgua)
+          : existingImovelDetalhes.valorAgua, // Preserva o valor atual se não for enviado
         valorGas: parseFloat(valorGas),
         administradorNome,
         administradorTelefone,
@@ -559,11 +626,21 @@ export const updateImovelDetalhesByCardId = async (req: Request, res: Response) 
         endereco,
         numero,
         complemento,
-        anexoCondominio: files.anexoCondominio ? files.anexoCondominio[0].path : existingImovelDetalhes.anexoCondominio, // Preserva o anexo atual se não for enviado
-        anexoIptu: files.anexoIptu ? files.anexoIptu[0].path : existingImovelDetalhes.anexoIptu, // Preserva o anexo atual
-        anexoAgua: files.anexoAgua ? files.anexoAgua[0].path : existingImovelDetalhes.anexoAgua, // Preserva o anexo atual
-        anexoLuz: files.anexoLuz ? files.anexoLuz[0].path : existingImovelDetalhes.anexoLuz, // Preserva o anexo atual
-        anexoEscritura: files.anexoEscritura ? files.anexoEscritura[0].path : existingImovelDetalhes.anexoEscritura, // Preserva o anexo atual
+        anexoCondominio: files.anexoCondominio
+          ? files.anexoCondominio[0].path
+          : existingImovelDetalhes.anexoCondominio, // Preserva o anexo atual se não for enviado
+        anexoIptu: files.anexoIptu
+          ? files.anexoIptu[0].path
+          : existingImovelDetalhes.anexoIptu, // Preserva o anexo atual
+        anexoAgua: files.anexoAgua
+          ? files.anexoAgua[0].path
+          : existingImovelDetalhes.anexoAgua, // Preserva o anexo atual
+        anexoLuz: files.anexoLuz
+          ? files.anexoLuz[0].path
+          : existingImovelDetalhes.anexoLuz, // Preserva o anexo atual
+        anexoEscritura: files.anexoEscritura
+          ? files.anexoEscritura[0].path
+          : existingImovelDetalhes.anexoEscritura, // Preserva o anexo atual
       },
     });
 
@@ -583,7 +660,9 @@ export const getProprietarioByCardId = async (req: Request, res: Response) => {
     });
 
     if (!proprietario) {
-      return res.status(404).json({ message: "Proprietário não encontrado para este card" });
+      return res
+        .status(404)
+        .json({ message: "Proprietário não encontrado para este card" });
     }
 
     res.status(200).json(proprietario);
@@ -593,7 +672,10 @@ export const getProprietarioByCardId = async (req: Request, res: Response) => {
   }
 };
 
-export const updateProprietarioByCardId = async (req: Request, res: Response) => {
+export const updateProprietarioByCardId = async (
+  req: Request,
+  res: Response
+) => {
   const { cardId } = req.params;
   const {
     tipoPessoa,
@@ -635,7 +717,9 @@ export const updateProprietarioByCardId = async (req: Request, res: Response) =>
     });
 
     if (!existingProprietario) {
-      return res.status(404).json({ message: "Proprietário não encontrado para este card" });
+      return res
+        .status(404)
+        .json({ message: "Proprietário não encontrado para este card" });
     }
 
     const updatedProprietario = await prisma.proprietario.update({
@@ -660,7 +744,9 @@ export const updateProprietarioByCardId = async (req: Request, res: Response) =>
         telefoneConjuge,
         nacionalidadeConjuge,
         naturalidadeConjuge,
-        dataNascimentoConjuge: dataNascimentoConjuge ? new Date(dataNascimentoConjuge) : existingProprietario.dataNascimentoConjuge,
+        dataNascimentoConjuge: dataNascimentoConjuge
+          ? new Date(dataNascimentoConjuge)
+          : existingProprietario.dataNascimentoConjuge,
         rgConjuge,
         orgaoExpedidorConjuge,
         cep,
@@ -669,13 +755,21 @@ export const updateProprietarioByCardId = async (req: Request, res: Response) =>
         endereco,
         numero,
         complemento,
-        anexoCpfRgMotorista: files.anexoCpfRgMotorista ? files.anexoCpfRgMotorista[0].path : existingProprietario.anexoCpfRgMotorista,
+        anexoCpfRgMotorista: files.anexoCpfRgMotorista
+          ? files.anexoCpfRgMotorista[0].path
+          : existingProprietario.anexoCpfRgMotorista,
         anexoCpfRgMotoristaConj: files.anexoCpfRgMotoristaConj
           ? files.anexoCpfRgMotoristaConj[0].path
           : existingProprietario.anexoCpfRgMotoristaConj,
-        anexoEstadoCivil: files.anexoEstadoCivil ? files.anexoEstadoCivil[0].path : existingProprietario.anexoEstadoCivil,
-        anexoResidencia: files.anexoResidencia ? files.anexoResidencia[0].path : existingProprietario.anexoResidencia,
-        anexoContratoSocial: files.anexoContratoSocial ? files.anexoContratoSocial[0].path : existingProprietario.anexoContratoSocial,
+        anexoEstadoCivil: files.anexoEstadoCivil
+          ? files.anexoEstadoCivil[0].path
+          : existingProprietario.anexoEstadoCivil,
+        anexoResidencia: files.anexoResidencia
+          ? files.anexoResidencia[0].path
+          : existingProprietario.anexoResidencia,
+        anexoContratoSocial: files.anexoContratoSocial
+          ? files.anexoContratoSocial[0].path
+          : existingProprietario.anexoContratoSocial,
       },
     });
 
@@ -698,7 +792,9 @@ export const moveCardToBoard = async (req: Request, res: Response) => {
     });
 
     if (!targetBoard || targetBoard.columns.length === 0) {
-      return res.status(400).json({ message: "Board ou colunas não encontradas." });
+      return res
+        .status(400)
+        .json({ message: "Board ou colunas não encontradas." });
     }
 
     const firstColumn = targetBoard.columns[0];
@@ -717,3 +813,22 @@ export const moveCardToBoard = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Erro ao mover card para outro board" });
   }
 };
+
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
