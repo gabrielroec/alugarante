@@ -141,8 +141,16 @@ CREATE TABLE `Locatario` (
 CREATE TABLE `Card` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `columnId` INTEGER NOT NULL,
-    `anexos` JSON NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Anexo` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `cardId` INTEGER NOT NULL,
+    `path` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -164,3 +172,6 @@ ALTER TABLE `Locatario` ADD CONSTRAINT `Locatario_cardId_fkey` FOREIGN KEY (`car
 
 -- AddForeignKey
 ALTER TABLE `Card` ADD CONSTRAINT `Card_columnId_fkey` FOREIGN KEY (`columnId`) REFERENCES `Column`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Anexo` ADD CONSTRAINT `Anexo_cardId_fkey` FOREIGN KEY (`cardId`) REFERENCES `Card`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

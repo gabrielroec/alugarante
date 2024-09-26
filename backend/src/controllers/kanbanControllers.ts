@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { prisma } from "../prismaClient"; // Importação do Prisma
 import upload from "../middlewares/multer";
-
+import fs from "fs/promises"; // Para operações de sistema de arquivos
+import path from "path"; // Para manipulação de caminhos de arquivos
 // Tipagem de parâmetros para o Request com params
 interface Params {
   boardId?: string;
@@ -715,5 +716,439 @@ export const moveCardToBoard = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao mover card para outro board:", error);
     res.status(500).json({ message: "Erro ao mover card para outro board" });
+  }
+};
+
+export const createColumn = async (req: Request, res: Response) => {
+  const { boardId } = req.params;
+  const { name } = req.body;
+
+  if (!boardId || !name) {
+    return res.status(400).json({ message: "ID do board e nome da coluna são necessários." });
+  }
+
+  try {
+    const newColumn = await prisma.column.create({
+      data: {
+        name,
+        board: {
+          connect: { id: parseInt(boardId) },
+        },
+      },
+      include: {
+        cards: true,
+      },
+    });
+
+    return res.status(201).json(newColumn);
+  } catch (error) {
+    console.error("Erro ao criar coluna:", error);
+    return res.status(500).json({ message: "Erro ao criar coluna" });
+  }
+};
+
+export const getLocatarioByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+
+  try {
+    const locatario = await prisma.locatario.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!locatario) {
+      return res.status(404).json({ message: "Locatário não encontrado para este card" });
+    }
+
+    res.status(200).json(locatario);
+  } catch (error) {
+    console.error("Erro ao buscar locatário:", error);
+    res.status(500).json({ message: "Erro ao buscar locatário" });
+  }
+};
+
+export const updateLocatarioByCardId = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const {
+    tipoPessoa,
+    nomeCompleto,
+    email,
+    telefone,
+    nacionalidade,
+    naturalidade,
+    estadoCivil,
+    dataNascimento,
+    cpf,
+    rg,
+    orgaoExpedidor,
+    cnpj,
+    razaoSocial,
+    cep,
+    estado,
+    bairro,
+    endereco,
+    numero,
+    complemento,
+  } = req.body;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  try {
+    // Verifica se o locatário existe
+    const existingLocatario = await prisma.locatario.findUnique({
+      where: { cardId: parseInt(cardId) },
+    });
+
+    if (!existingLocatario) {
+      return res.status(404).json({ message: "Locatário não encontrado para este card" });
+    }
+
+    // Prepara os dados para atualização
+    const updateData: any = {
+      tipoPessoa,
+      nomeCompleto,
+      email,
+      telefone,
+      nacionalidade,
+      naturalidade,
+      estadoCivil,
+      dataNascimento: dataNascimento ? new Date(dataNascimento) : existingLocatario.dataNascimento,
+      cpf: tipoPessoa === "Física" ? cpf : null,
+      rg: tipoPessoa === "Física" ? rg : null,
+      orgaoExpedidor: tipoPessoa === "Física" ? orgaoExpedidor : null,
+      cnpj: tipoPessoa === "Jurídica" ? cnpj : null,
+      razaoSocial: tipoPessoa === "Jurídica" ? razaoSocial : null,
+      cep,
+      estado,
+      bairro,
+      endereco,
+      numero,
+      complemento,
+    };
+
+    // Atualiza os anexos se existirem
+    if (files) {
+      if (files.anexoCpfRgMotoristaLocatario) {
+        updateData.anexoCpfRgMotoristaLocatario = files.anexoCpfRgMotoristaLocatario[0].path;
+      }
+      if (files.anexoEstadoCivilLocatario) {
+        updateData.anexoEstadoCivilLocatario = files.anexoEstadoCivilLocatario[0].path;
+      }
+      if (files.anexoResidenciaLocatario) {
+        updateData.anexoResidenciaLocatario = files.anexoResidenciaLocatario[0].path;
+      }
+      if (files.anexoContratoSocialLocatario) {
+        updateData.anexoContratoSocialLocatario = files.anexoContratoSocialLocatario[0].path;
+      }
+      if (files.anexoUltimoBalancoLocatario) {
+        updateData.anexoUltimoBalancoLocatario = files.anexoUltimoBalancoLocatario[0].path;
+      }
+    }
+
+    // Atualiza o locatário no banco de dados
+    const updatedLocatario = await prisma.locatario.update({
+      where: { cardId: parseInt(cardId) },
+      data: updateData,
+    });
+
+    res.status(200).json(updatedLocatario);
+  } catch (error) {
+    console.error("Erro ao atualizar locatário:", error);
+    res.status(500).json({ message: "Erro ao atualizar locatário" });
+  }
+};
+
+export const addAnexosToCard = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  // Verifica se há arquivos enviados no campo 'anexos'
+  if (!files || !files.anexos || files.anexos.length === 0) {
+    return res.status(400).json({ message: "Nenhum arquivo enviado no campo 'anexos'." });
+  }
+
+  try {
+    // Verifica se o Card existe
+    const card = await prisma.card.findUnique({
+      where: { id: parseInt(cardId) },
+    });
+
+    if (!card) {
+      return res.status(404).json({ message: "Card não encontrado." });
+    }
+
+    // Mapeia os novos anexos para o formato do modelo Anexo
+    const novosAnexos = files.anexos.map((file) => ({
+      path: file.path,
+      cardId: card.id,
+    }));
+
+    // Cria os anexos no banco de dados
+    const anexosCriados = await prisma.anexo.createMany({
+      data: novosAnexos,
+    });
+
+    res.status(200).json({ message: "Anexos adicionados com sucesso.", anexosCriados });
+  } catch (error) {
+    console.error("Erro ao adicionar anexos ao Card:", error);
+    res.status(500).json({ message: "Erro interno ao adicionar anexos ao Card." });
+  }
+};
+
+export const getAnexosForCard = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+
+  console.log(`Recebendo requisição para buscar anexos do card ID: ${cardId}`);
+
+  try {
+    const cardIdNumber = parseInt(cardId, 10);
+    if (isNaN(cardIdNumber)) {
+      console.error(`ID do card inválido: ${cardId}`);
+      return res.status(400).json({ message: "ID do card inválido." });
+    }
+
+    const card = await prisma.card.findUnique({
+      where: { id: cardIdNumber },
+      include: { anexos: true }, // Usando 'anexos' após renomeação
+    });
+
+    if (!card) {
+      console.error(`Card não encontrado com ID: ${cardIdNumber}`);
+      return res.status(404).json({ message: "Card não encontrado." });
+    }
+
+    console.log(`Anexos encontrados para o card ID ${cardIdNumber}:`, card.anexos);
+
+    res.status(200).json({ anexos: card.anexos });
+  } catch (error) {
+    console.error("Erro ao buscar anexos do Card:", error);
+    res.status(500).json({ message: "Erro interno ao buscar anexos do Card." });
+  }
+};
+
+export const deleteCard = async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+
+  // Validação básica do cardId
+  if (!cardId) {
+    return res.status(400).json({ message: "ID do card não fornecido." });
+  }
+
+  const cardIdNumber = parseInt(cardId, 10);
+  if (isNaN(cardIdNumber)) {
+    return res.status(400).json({ message: "ID do card inválido." });
+  }
+
+  try {
+    // Verifica se o card existe e recupera os anexos
+    const card = await prisma.card.findUnique({
+      where: { id: cardIdNumber },
+      include: { anexos: true }, // Inclui os anexos para obter os caminhos dos arquivos
+    });
+
+    if (!card) {
+      return res.status(404).json({ message: "Card não encontrado." });
+    }
+
+    // Extrai os caminhos dos arquivos dos anexos
+    const anexosPaths = card.anexos.map((anexo) => anexo.path);
+
+    // Inicia uma transação para garantir a atomicidade
+    await prisma.$transaction([
+      // 1. Excluir anexos relacionados
+      prisma.anexo.deleteMany({
+        where: { cardId: cardIdNumber },
+      }),
+
+      // 2. Excluir detalhes do imóvel
+      prisma.imovelDetalhes.deleteMany({
+        where: { cardId: cardIdNumber },
+      }),
+
+      // 3. Excluir imóvel
+      prisma.imovel.deleteMany({
+        where: { cardId: cardIdNumber },
+      }),
+
+      // 4. Excluir proprietário
+      prisma.proprietario.deleteMany({
+        where: { cardId: cardIdNumber },
+      }),
+
+      // 5. Excluir locatário
+      prisma.locatario.deleteMany({
+        where: { cardId: cardIdNumber },
+      }),
+
+      // 6. Excluir o card
+      prisma.card.delete({
+        where: { id: cardIdNumber },
+      }),
+    ]);
+
+    // Após a transação bem-sucedida, exclui os arquivos do sistema de arquivos
+    const fileDeletionPromises = anexosPaths.map(async (filePath) => {
+      try {
+        // Resolve o caminho absoluto do arquivo
+        const absolutePath = path.resolve(filePath);
+        await fs.unlink(absolutePath);
+        console.log(`Arquivo excluído: ${absolutePath}`);
+      } catch (err) {
+        // Log de erro, mas não interrompe o fluxo principal
+        console.error(`Erro ao excluir arquivo ${filePath}:`, err);
+      }
+    });
+
+    await Promise.all(fileDeletionPromises);
+
+    return res.status(200).json({ message: "Card e anexos excluídos com sucesso." });
+  } catch (error) {
+    console.error("Erro ao excluir card:", error);
+    return res.status(500).json({ message: "Erro interno ao excluir card." });
+  }
+};
+
+export const createBlankCard = async (req: Request, res: Response) => {
+  try {
+    const { boardId } = req.body;
+
+    if (!boardId) {
+      return res.status(400).json({ message: "ID do board não fornecido." });
+    }
+
+    // Verifica se o board existe
+    const board = await prisma.board.findUnique({
+      where: { id: parseInt(boardId) },
+      include: { columns: true },
+    });
+
+    if (!board || board.columns.length === 0) {
+      return res.status(400).json({ message: "Board ou colunas não encontradas." });
+    }
+
+    const primeiraColuna = board.columns[0];
+
+    // Cria o card juntamente com as entidades associadas em branco
+    const novoCard = await prisma.card.create({
+      data: {
+        columnId: primeiraColuna.id,
+        proprietario: {
+          create: {
+            tipoPessoa: "",
+            cnpj: null,
+            razaoSocial: null,
+            estadoCivil: "",
+            cpfConjuge: null,
+            nomeCompleto: "",
+            nomeCompletoConjuge: null,
+            email: "",
+            telefone: "",
+            nacionalidade: "",
+            naturalidade: "",
+            dataNascimento: null, // Agora permitido
+            cpf: null,
+            rg: null,
+            orgaoExpedidor: null,
+            emailConjuge: null,
+            telefoneConjuge: null,
+            nacionalidadeConjuge: null,
+            naturalidadeConjuge: null,
+            dataNascimentoConjuge: null,
+            rgConjuge: null,
+            orgaoExpedidorConjuge: null,
+            cep: "",
+            estado: "",
+            bairro: "",
+            endereco: "",
+            numero: "",
+            complemento: null,
+            anexoCpfRgMotorista: null,
+            anexoCpfRgMotoristaConj: null,
+            anexoEstadoCivil: null,
+            anexoResidencia: null,
+            anexoContratoSocial: null,
+          },
+        },
+        imovel: {
+          create: {
+            tipoImovelSelecionado: "",
+            valorAluguel: 0,
+            valorIptu: null,
+            valorCondominio: 0,
+            valorGas: 0,
+            planoSelecionado: "",
+            valorMensal: 0,
+            taxaSetup: 0,
+          },
+        },
+        imovelDetalhes: {
+          create: {
+            finalidade: "",
+            tipoImovel: "",
+            valorAluguel: 0,
+            valorCondominio: 0,
+            valorIptu: null,
+            valorAgua: null,
+            valorGas: 0,
+            administradorNome: "",
+            administradorTelefone: "",
+            cepImovel: "",
+            cidade: "",
+            estado: "",
+            bairro: "",
+            endereco: "",
+            numero: "",
+            complemento: null,
+            anexoCondominio: null,
+            anexoIptu: null,
+            anexoAgua: null,
+            anexoLuz: null,
+            anexoEscritura: null,
+          },
+        },
+        locatario: {
+          create: {
+            tipoPessoa: "",
+            nomeCompleto: "",
+            email: "",
+            telefone: "",
+            nacionalidade: "",
+            naturalidade: "",
+            estadoCivil: "",
+            dataNascimento: null, // Alterado para null
+            cpf: null,
+            rg: null,
+            orgaoExpedidor: null,
+            cnpj: null,
+            razaoSocial: null,
+            cep: "",
+            estado: "",
+            bairro: "",
+            endereco: "",
+            numero: "",
+            complemento: null,
+            anexoCpfRgMotoristaLocatario: null,
+            anexoEstadoCivilLocatario: null,
+            anexoResidenciaLocatario: null,
+            anexoContratoSocialLocatario: null,
+            anexoUltimoBalancoLocatario: null,
+          },
+        },
+        anexos: {
+          create: [],
+        },
+      },
+      include: {
+        proprietario: true,
+        imovel: true,
+        imovelDetalhes: true,
+        locatario: true,
+        anexos: true,
+      },
+    });
+
+    res.status(201).json(novoCard);
+  } catch (error) {
+    console.error("Erro ao criar card em branco:", error);
+    res.status(500).json({ message: "Erro ao criar card em branco." });
   }
 };

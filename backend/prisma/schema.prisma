@@ -10,7 +10,7 @@ datasource db {
 model Board {
   id        Int      @id @default(autoincrement())
   name      String
-  columns   Column[] // Relacionamento com as Columns
+  columns   Column[] // Já no plural
 }
 
 model Column {
@@ -18,64 +18,63 @@ model Column {
   name      String
   boardId   Int
   board     Board    @relation(fields: [boardId], references: [id])
-  cards     Card[]   // Relacionamento com os Cards
+  cards     Card[]   // Já no plural
 }
 
 model Imovel {
-  id                    Int      @id @default(autoincrement())
+  id                   Int            @id @default(autoincrement())
   tipoImovelSelecionado String
   valorAluguel          Float
-  valorIptu             Float
+  valorIptu             Float?         // Adicione o `?` para tornar opcional
   valorCondominio       Float
   valorGas              Float
-  planoSelecionado      String
+  planoSelecionado     String
   valorMensal           Float
   taxaSetup             Float
-  card                  Card?    @relation(fields: [cardId], references: [id])
-  cardId                Int      @unique // Defina o campo como único
+  card                  Card           @relation(fields: [cardId], references: [id])
+  cardId                Int @unique
 }
 
 model Proprietario {
-  id                      Int      @id @default(autoincrement())
-  tipoPessoa              String
-  cnpj                    String?
-  razaoSocial             String?
-  estadoCivil             String
-  cpfConjuge              String?
-  nomeCompleto            String
-  nomeCompletoConjuge     String?
-  email                   String
-  telefone                String
-  nacionalidade           String
-  naturalidade            String
-  dataNascimento          DateTime
-  cpf                     String
-  rg                      String
-  orgaoExpedidor          String
-  emailConjuge            String?
-  telefoneConjuge         String?
-  nacionalidadeConjuge    String?
-  naturalidadeConjuge     String?
-  dataNascimentoConjuge   DateTime?
-  rgConjuge               String?
-  orgaoExpedidorConjuge   String?
-  cep                     String
-  estado                  String
-  bairro                  String
-  endereco                String
-  numero                  String
-  complemento             String?
-
-  // Campos para armazenar anexos
-  anexoCpfRgMotorista     String?  // Caminho do arquivo do proprietário
-  anexoCpfRgMotoristaConj String?  // Caminho do arquivo do cônjuge
-  anexoEstadoCivil        String?  // Caminho do comprovante de estado civil
-  anexoResidencia         String?  // Caminho do comprovante de residência
-  anexoContratoSocial     String?  // Caminho do contrato social (caso empresa)
-
-  card                    Card?    @relation(fields: [cardId], references: [id])
-  cardId                  Int      @unique
+  id                        Int    @id @default(autoincrement())
+  tipoPessoa                String
+  cnpj                      String? // Já opcional
+  razaoSocial               String?
+  estadoCivil               String
+  cpfConjuge                String?
+  nomeCompleto              String
+  nomeCompletoConjuge       String?
+  email                     String
+  telefone                  String
+  nacionalidade             String
+  naturalidade              String
+  dataNascimento            DateTime?
+  cpf                       String?
+  rg                        String?
+  orgaoExpedidor            String?
+  emailConjuge              String?
+  telefoneConjuge           String?
+  nacionalidadeConjuge      String?
+  naturalidadeConjuge       String?
+  dataNascimentoConjuge     DateTime?
+  rgConjuge                 String?
+  orgaoExpedidorConjuge      String?
+  cep                       String
+  estado                    String
+  bairro                    String
+  endereco                  String
+  numero                    String
+  complemento               String?
+  anexoCpfRgMotorista       String?
+  anexoCpfRgMotoristaConj   String?
+  anexoEstadoCivil          String?
+  anexoResidencia           String?
+  anexoContratoSocial       String?
+  card                      Card   @relation(fields: [cardId], references: [id])
+  cardId                    Int @unique
 }
+
+
 
 model ImovelDetalhes {
   id                    Int      @id @default(autoincrement())
@@ -116,7 +115,7 @@ model Locatario {
   nacionalidade         String
   naturalidade          String
   estadoCivil           String
-  dataNascimento        DateTime
+  dataNascimento        DateTime?  // Tornado opcional
   cpf                   String?
   rg                    String?
   orgaoExpedidor        String?
@@ -130,15 +129,17 @@ model Locatario {
   complemento           String?
 
   // Campos para armazenar anexos do locatário
-  anexoCpfRgMotoristaLocatario   String?  // Caminho do arquivo do locatário
-  anexoEstadoCivilLocatario      String?  // Caminho do comprovante de estado civil do locatário
-  anexoResidenciaLocatario       String?  // Caminho do comprovante de residência do locatário
-  anexoContratoSocialLocatario   String?  // Caminho do contrato social (caso empresa)
-  anexoUltimoBalancoLocatario    String?  // Caminho do último balanço financeiro do locatário
+  anexoCpfRgMotoristaLocatario   String?
+  anexoEstadoCivilLocatario      String?
+  anexoResidenciaLocatario       String?
+  anexoContratoSocialLocatario   String?
+  anexoUltimoBalancoLocatario    String?
 
   card                  Card?    @relation(fields: [cardId], references: [id])
   cardId                Int      @unique
 }
+
+
 
 model Card {
   id                    Int         @id @default(autoincrement())
@@ -151,8 +152,15 @@ model Card {
   imovelDetalhes        ImovelDetalhes?
   locatario             Locatario?
 
-  // Campo para armazenar múltiplos anexos no card
-  anexos                Json?       // JSON para armazenar lista de arquivos anexados posteriormente
 
   createdAt             DateTime    @default(now())
+
+  anexos Anexo[] // Renomeado para 'anexos'
+}
+
+model Anexo {
+  id      Int    @id @default(autoincrement())
+  cardId  Int
+  path    String
+  card    Card   @relation(fields: [cardId], references: [id])
 }

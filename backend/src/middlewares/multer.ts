@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
     cb(null, "uploads/"); // Diretório onde os arquivos serão salvos
   },
   filename: (req, file, cb) => {
-    // Usa o nome do campo (file.fieldname) e um timestamp para nomear o arquivo
+    // Usa um timestamp e o nome original para garantir a unicidade
     const uniqueSuffix = `${Date.now()}-${file.fieldname}${path.extname(file.originalname)}`;
     cb(null, uniqueSuffix);
   },

@@ -18,6 +18,13 @@ import {
   getProprietarioByCardId,
   updateProprietarioByCardId,
   moveCardToBoard,
+  createColumn,
+  getLocatarioByCardId,
+  updateLocatarioByCardId,
+  addAnexosToCard,
+  getAnexosForCard,
+  deleteCard,
+  createBlankCard,
 } from "../controllers/kanbanControllers";
 import upload from "../middlewares/multer"; // Importando o middleware de upload
 
@@ -122,5 +129,35 @@ router.put(
 router.patch("/columns/:columnId", updateColumnName);
 
 router.post("/cards/:cardId/moveBoard", moveCardToBoard);
+
+router.post("/boards/:boardId/columns", createColumn);
+
+router.get("/locatario/card/:cardId", getLocatarioByCardId);
+
+router.put(
+  "/locatario/card/:cardId",
+  upload.fields([
+    { name: "anexoCpfRgMotoristaLocatario", maxCount: 1 },
+    { name: "anexoEstadoCivilLocatario", maxCount: 1 },
+    { name: "anexoResidenciaLocatario", maxCount: 1 },
+    { name: "anexoContratoSocialLocatario", maxCount: 1 },
+    { name: "anexoUltimoBalancoLocatario", maxCount: 1 },
+  ]),
+  updateLocatarioByCardId
+);
+
+// Rota para adicionar anexos (contratos) a um Card específico
+router.post(
+  "/cards/:cardId/anexos",
+  upload.fields([{ name: "anexos", maxCount: 10 }]), // Permite até 10 arquivos no campo 'anexos'
+  addAnexosToCard
+);
+
+// Rota para buscar anexos (contratos) de um Card específico
+router.get("/cards/:cardId/anexos", getAnexosForCard);
+
+router.delete("/cards/:cardId", deleteCard);
+
+router.post("/cards/blank", createBlankCard);
 
 export default router;
