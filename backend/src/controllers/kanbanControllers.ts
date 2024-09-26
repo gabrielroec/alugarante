@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import { prisma } from "../prismaClient"; // Importação do Prisma
 import upload from "../middlewares/multer";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // Tipagem de parâmetros para o Request com params
 interface Params {
@@ -832,3 +838,381 @@ export const moveCardToBoard = async (req: Request, res: Response) => {
 // REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
 // REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
 // REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { nome, telefone, email, senha, foto, isAdmin } = req.body;
+    if (!nome || !telefone || !email || !senha || !foto || !isAdmin) {
+      return res.status(400).json({
+        message: "Algo está faltando.",
+        success: false,
+      });
+    }
+
+    if (senha.length < 8) {
+      return res.status(400).json({
+        message: "A senha deve ter pelo menos 8 caracteres.",
+        success: false,
+      });
+    }
+
+    const hasUpperCase = /[A-Z]/.test(senha);
+    if (!hasUpperCase) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos uma letra maiúscula.",
+        success: false,
+      });
+    }
+
+    const hasSpecialChar = /[\W_]/.test(senha);
+    if (!hasSpecialChar) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos um caractere especial.",
+        success: false,
+      });
+    }
+
+    const hasDigit = /\d/.test(senha);
+    if (!hasDigit) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos um dígito.",
+        success: false,
+      });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email já está sendo utilizado.",
+        success: false,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(senha, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        nome,
+        telefone,
+        email,
+        senha: hashedPassword,
+        foto,
+        isAdmin: isAdmin === "sim" ? true : false,
+      },
+    });
+
+    return res.status(201).json({
+      message:
+        "Conta criada com sucesso. Verifique seu e-mail para ativar sua conta.",
+      success: true,
+      newUser,
+    });
+  } catch (error) {
+    console.error("Ocorreu um erro ao criar a conta.");
+    res.status(500).json({
+      message: "Ocorreu um erro ao criar a conta.",
+      success: false,
+    });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, senha } = req.body;
+    if (!email || !senha) {
+      return res.status(400).json({
+        message: "Email e senha são obrigatórios.",
+        success: false,
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Email ou senha incorretos.",
+        success: false,
+      });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(senha, user.senha);
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        message: "Email ou senha incorretos.",
+        success: false,
+      });
+    }
+
+    const tokenData = { userId: user.id };
+    const secretKey = process.env.SECRET_KEY;
+
+    // Verifique se o secretKey está definido
+    if (!secretKey) {
+      return res.status(500).json({
+        message: "Erro interno do servidor. Secret Key não está definida.",
+        success: false,
+      });
+    }
+
+    const token = jwt.sign(tokenData, secretKey, {
+      expiresIn: "1d",
+    });
+
+    return res.status(200).json({
+      message: "Login realizado com sucesso.",
+      success: true,
+      user,
+      token,
+    });
+  } catch (error) {
+    console.error("Ocorreu um erro ao fazer login.");
+    res.status(500).json({
+      message: "Ocorreu um erro ao fazer login.",
+      success: false,
+    });
+  }
+};
+
+export const forgetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Por favor, insira seu e-mail.",
+        success: false,
+      });
+    }
+
+    const checkUser = await prisma.user.findUnique({ where: { email } });
+
+    if (!checkUser) {
+      return res.status(400).json({
+        message: "Usuário não encontrado em nosso banco de dados.",
+        success: false,
+      });
+    }
+
+    const secretKey = process.env.SECRET_KEY as string;
+    const token = jwt.sign({ email }, secretKey, { expiresIn: "1h" });
+
+    const resetURL = `${process.env.CLIENT_URL}/reset-password/${token}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      secure: true,
+      auth: {
+        user: process.env.SUPORTE_GMAIL,
+        pass: process.env.SUPORTE_PASSWORD,
+      },
+    });
+
+    const receiver = {
+      from: "",
+      to: email,
+      subject: "Pedido de redefinição de senha.",
+      text: `Clique no link para redefinir sua senha ${resetURL}`,
+    };
+
+    await transporter.sendMail(receiver);
+
+    return res.status(200).json({
+      message:
+        "O link para redefinir sua senha foi enviado com sucesso para seu e-mail!",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Erro ao processar sua solicitação.",
+      success: false,
+    });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { senha } = req.body;
+
+    if (!senha) {
+      return res.status(400).json({
+        message: "Por favor, insira sua senha.",
+        success: false,
+      });
+    }
+
+    if (senha.length < 8) {
+      return res.status(400).json({
+        message: "A senha deve ter pelo menos 8 caracteres.",
+        success: false,
+      });
+    }
+
+    const hasUpperCase = /[A-Z]/.test(senha);
+    if (!hasUpperCase) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos uma letra maiúscula.",
+        success: false,
+      });
+    }
+
+    const hasSpecialChar = /[\W_]/.test(senha);
+    if (!hasSpecialChar) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos um caractere especial.",
+        success: false,
+      });
+    }
+
+    const hasDigit = /\d/.test(senha);
+    if (!hasDigit) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos um dígito.",
+        success: false,
+      });
+    }
+
+    const secretKey = process.env.JWT_SECRET_KEY;
+
+    // Verifique se o JWT_SECRET_KEY está definido
+    if (!secretKey) {
+      return res.status(500).json({
+        message: "Erro interno do servidor. JWT Secret Key não está definida.",
+        success: false,
+      });
+    }
+
+    const decode = jwt.verify(token, secretKey) as { email: string };
+
+    const user = await prisma.user.findUnique({
+      where: { email: decode.email },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuário não encontrado.",
+        success: false,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(senha, 10);
+
+    await prisma.user.update({
+      where: { email: decode.email },
+      data: { senha: hashedPassword },
+    });
+
+    return res.status(200).json({
+      message: "Sua senha foi redefinida com sucesso!",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Erro ao redefinir a senha:", error);
+    return res.status(500).json({
+      message: "Erro ao redefinir a senha.",
+      success: false,
+    });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    return res.status(200).cookie("token", "", { maxAge: 0 }).json({
+      message: "Desconectado com sucesso.",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Ocorreu um erro ao tentar desconectar.",
+      success: false,
+    });
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { nome, telefone, email, senha, foto } = req.body;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        message: "Usuário não encontrado.",
+        success: false,
+      });
+    }
+
+    if (email && email !== existingUser.email) {
+      const emailInUse = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (emailInUse) {
+        return res.status(400).json({
+          message: "Email já está sendo utilizado por outro usuário.",
+          success: false,
+        });
+      }
+    }
+
+    let hashedPassword = existingUser.senha;
+    if (senha) {
+      if (senha.length < 8) {
+        return res.status(400).json({
+          message: "A nova senha deve ter pelo menos 8 caracteres.",
+          success: false,
+        });
+      }
+      hashedPassword = await bcrypt.hash(senha, 10);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: Number(id) },
+      data: {
+        nome: nome || existingUser.nome,
+        telefone: telefone || existingUser.telefone,
+        email: email || existingUser.email,
+        senha: hashedPassword,
+        foto: foto || existingUser.foto,
+      },
+    });
+    return res.status(200).json({
+      message: "Perfil atualizado com sucesso.",
+      success: true,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar o perfil.", error);
+    return res.status(500).json({
+      message: "Erro ao atualizar o perfil.",
+      success: false,
+    });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};

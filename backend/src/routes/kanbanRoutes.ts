@@ -18,6 +18,13 @@ import {
   getProprietarioByCardId,
   updateProprietarioByCardId,
   moveCardToBoard,
+  register,
+  login,
+  resetPassword,
+  forgetPassword,
+  logout,
+  updateProfile,
+  getUserById,
 } from "../controllers/kanbanControllers";
 import upload from "../middlewares/multer"; // Importando o middleware de upload
 
@@ -124,3 +131,27 @@ router.patch("/columns/:columnId", updateColumnName);
 router.post("/cards/:cardId/moveBoard", moveCardToBoard);
 
 export default router;
+
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+// REGISTER, LOGIN, RECUPERAR SENHA, ATUALIZAR PERFIL
+
+router.post("/register", register);
+router.post("/login", login);
+router.get("/logout", logout);
+router.post("forget-password", forgetPassword);
+router.post("reset-password/:token", resetPassword);
+router.post("/profile/update", updateProfile);
+router.get("/getUser/:id", getUserById);
