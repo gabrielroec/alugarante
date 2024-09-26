@@ -36,6 +36,7 @@ export default function FirstForm() {
 
     if (planoSelecionado === "Plano 1") {
       valorBase = aluguel * 0.15; // 15% do aluguel + encargos
+      setTaxaSetup(100); // Defina o valor correto para Plano 1
     } else if (planoSelecionado === "Plano 2") {
       valorBase = aluguel * 0.12; // 12% do aluguel
       setTaxaSetup(120);
@@ -52,6 +53,7 @@ export default function FirstForm() {
   // Executa a função sempre que algum valor relevante mudar
   useEffect(() => {
     calcularValorMensal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valorAluguel, valorIptu, valorCondominio, valorGas, planoSelecionado]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,6 +110,7 @@ export default function FirstForm() {
       });
     }
   };
+
   return (
     <form className="mt-10" onSubmit={handleSubmit}>
       {/* Select do Tipo de Imóvel */}
@@ -195,6 +198,8 @@ export default function FirstForm() {
                 Garantia do Aluguel, IPTU, Condomínio e Gás
                 <br />
                 Cobrança Extrajudicial
+                <br />
+                Taxa Setup: R$100,00 {/* Adicione a taxa correta */}
               </p>
             )}
           </div>
@@ -275,7 +280,7 @@ export default function FirstForm() {
       <div className="text-center mt-6">
         <p className="text-sm text-gray-600">Valor da mensalidade</p>
         <p className="text-4xl font-bold text-gray-800">R${valorMensal.toFixed(2)}/mês</p>
-        {taxaSetup > 0 && <p className="text-sm text-gray-600 mb-4">Taxa de Setup: R${taxaSetup.toFixed(2)}</p>}
+        <p className="text-sm text-gray-600 mb-4">{taxaSetup > 0 ? `Taxa de Setup: R$${taxaSetup.toFixed(2)}` : "Sem taxa de setup"}</p>
         <button className="bg-[#87A644] text-white px-6 py-6 rounded-lg hover:bg-green-600 mt-10 w-full" type="submit">
           Faça uma cotação agora!
         </button>

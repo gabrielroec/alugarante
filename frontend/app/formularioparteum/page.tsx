@@ -7,6 +7,65 @@ import React, { Fragment, useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
 
+// Funções Utilitárias para Validação
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const isValidCPF = (cpf: string): boolean => {
+  cpf = cpf.replace(/[^\d]+/g, "");
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i);
+  let rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(cpf.charAt(9))) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i)) * (11 - i);
+  rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(cpf.charAt(10))) return false;
+
+  return true;
+};
+
+const isValidCNPJ = (cnpj: string): boolean => {
+  cnpj = cnpj.replace(/[^\d]+/g, "");
+  if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+
+  let length = cnpj.length - 2;
+  let numbers = cnpj.substring(0, length);
+  const digits = cnpj.substring(length);
+  let sum = 0;
+  let pos = length - 7;
+
+  for (let i = length; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(length - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+
+  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(0))) return false;
+
+  length += 1;
+  numbers = cnpj.substring(0, length);
+  sum = 0;
+  pos = length - 7;
+
+  for (let i = length; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(length - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+
+  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(1))) return false;
+
+  return true;
+};
+
 const SecondForm = () => {
   // Removido o cardId como prop
   const { toast } = useToast();
@@ -84,6 +143,11 @@ const SecondForm = () => {
       setEstado(data.uf);
     } catch (error) {
       console.error("Erro ao buscar o CEP:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao buscar o CEP. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -94,18 +158,26 @@ const SecondForm = () => {
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let cpf = e.target.value.replace(/\D/g, "");
-    cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{3})(\d)/, "$1.$2.$3-");
-    setCpf(cpf.slice(0, 14));
+    let cpfInput = e.target.value.replace(/\D/g, "").substring(0, 11); // Remove não dígitos e limita a 11 caracteres
+
+    if (cpfInput.length > 9) {
+      cpfInput = cpfInput.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    } else if (cpfInput.length > 6) {
+      cpfInput = cpfInput.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+    } else if (cpfInput.length > 3) {
+      cpfInput = cpfInput.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+    }
+
+    setCpf(cpfInput);
   };
 
-  const handleSelectChange = (e: { target: { value: any } }) => {
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
     setTipoPessoa(selectedValue);
     setIsPessoaJuridica(selectedValue === "Pessoa jurídica");
   };
 
-  const handleEstadoCivilChange = (e: { target: { value: any } }) => {
+  const handleEstadoCivilChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
     setEstadoCivil(selectedValue);
     setIsCasado(selectedValue === "Casado");
@@ -123,6 +195,7 @@ const SecondForm = () => {
       return;
     }
 
+    // Validação dos campos obrigatórios
     if (!nomeCompleto || !email || !telefone || !cpf || !rg || !cep || !estado || !bairro || !endereco || !numero) {
       toast({
         title: "Erro no envio",
@@ -132,61 +205,213 @@ const SecondForm = () => {
       return;
     }
 
-    if (isPessoaJuridica && (!cnpj || !razaoSocial)) {
+    // **Validação dos Anexos Obrigatórios**
+    if (!anexoCpfRgMotorista) {
       toast({
         title: "Erro no envio",
-        description: "Por favor, preencha os campos de CNPJ e Razão Social.",
+        description: "Por favor, anexe o CPF, RG ou CNH.",
         variant: "destructive",
       });
       return;
     }
 
-    if (isCasado && (!nomeCompletoConjuge || !cpfConjuge || !rgConjuge || !emailConjuge || !telefoneConjuge)) {
+    if (!anexoResidencia) {
       toast({
         title: "Erro no envio",
-        description: "Por favor, preencha todos os campos do cônjuge.",
+        description: "Por favor, anexe o comprovante de residência.",
         variant: "destructive",
       });
       return;
     }
 
-    // Cria um objeto FormData para enviar os dados e os arquivos
-    const formData = new FormData();
-    formData.append("cardId", cardId.toString());
-    formData.append("tipoPessoa", tipoPessoa);
-    formData.append("cnpj", cnpj);
-    formData.append("razaoSocial", razaoSocial);
-    formData.append("estadoCivil", estadoCivil);
-    formData.append("cpfConjuge", cpfConjuge);
-    formData.append("rgConjuge", rgConjuge);
-    formData.append("nomeCompleto", nomeCompleto);
-    formData.append("nomeCompletoConjuge", nomeCompletoConjuge);
-    formData.append("email", email);
-    formData.append("emailConjuge", emailConjuge);
-    formData.append("telefone", telefone);
-    formData.append("telefoneConjuge", telefoneConjuge);
-    formData.append("nacionalidade", nacionalidade);
-    formData.append("nacionalidadeConjuge", nacionalidadeConjuge);
-    formData.append("naturalidade", naturalidade);
-    formData.append("naturalidadeConjuge", naturalidadeConjuge);
-    formData.append("dataNascimento", dataNascimento);
-    formData.append("cpf", cpf);
-    formData.append("rg", rg);
-    formData.append("orgaoExpedidor", orgaoExpedidor);
-    formData.append("cep", cep);
-    formData.append("estado", estado);
-    formData.append("bairro", bairro);
-    formData.append("endereco", endereco);
-    formData.append("numero", numero);
-    formData.append("complemento", complemento);
+    if (isPessoaJuridica && !anexoContratoSocial) {
+      toast({
+        title: "Erro no envio",
+        description: "Por favor, anexe o contrato social.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    if (anexoCpfRgMotorista) formData.append("anexoCpfRgMotorista", anexoCpfRgMotorista);
-    if (anexoCpfRgMotoristaConj) formData.append("anexoCpfRgMotoristaConj", anexoCpfRgMotoristaConj);
-    if (anexoEstadoCivil) formData.append("anexoEstadoCivil", anexoEstadoCivil);
-    if (anexoResidencia) formData.append("anexoResidencia", anexoResidencia);
-    if (anexoContratoSocial) formData.append("anexoContratoSocial", anexoContratoSocial);
+    // Validação do formato do e-mail
+    if (!isValidEmail(email)) {
+      toast({
+        title: "E-mail inválido",
+        description: "Por favor, insira um e-mail válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação do CPF
+    if (!isValidCPF(cpf)) {
+      toast({
+        title: "CPF inválido",
+        description: "Por favor, insira um CPF válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação do RG
+    if (rg.length < 5) {
+      // Exemplo de validação simples
+      toast({
+        title: "RG inválido",
+        description: "Por favor, insira um RG válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação condicional para Pessoa Jurídica
+    if (isPessoaJuridica) {
+      if (!cnpj || !razaoSocial) {
+        toast({
+          title: "Erro no envio",
+          description: "Por favor, preencha os campos de CNPJ e Razão Social.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validação do CNPJ
+      if (!isValidCNPJ(cnpj)) {
+        toast({
+          title: "CNPJ inválido",
+          description: "Por favor, insira um CNPJ válido.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validação condicional para Casado
+    if (isCasado) {
+      if (!nomeCompletoConjuge || !cpfConjuge || !rgConjuge || !emailConjuge || !telefoneConjuge) {
+        toast({
+          title: "Erro no envio",
+          description: "Por favor, preencha todos os campos do cônjuge.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validação do e-mail do cônjuge
+      if (!isValidEmail(emailConjuge)) {
+        toast({
+          title: "E-mail do cônjuge inválido",
+          description: "Por favor, insira um e-mail válido para o cônjuge.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validação do CPF do cônjuge
+      if (!isValidCPF(cpfConjuge)) {
+        toast({
+          title: "CPF do cônjuge inválido",
+          description: "Por favor, insira um CPF válido para o cônjuge.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validação do RG do cônjuge
+      if (rgConjuge.length < 5) {
+        // Exemplo de validação simples
+        toast({
+          title: "RG do cônjuge inválido",
+          description: "Por favor, insira um RG válido para o cônjuge.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validação de Data de Nascimento
+    if (dataNascimento) {
+      const hoje = new Date();
+      const nascimento = new Date(dataNascimento);
+      if (nascimento > hoje) {
+        toast({
+          title: "Data de nascimento inválida",
+          description: "A data de nascimento não pode ser futura.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validação de Data de Nascimento do Cônjuge
+    if (isCasado && dataNascimentoConjuge) {
+      const hoje = new Date();
+      const nascimentoConj = new Date(dataNascimentoConjuge);
+      if (nascimentoConj > hoje) {
+        toast({
+          title: "Data de nascimento do cônjuge inválida",
+          description: "A data de nascimento do cônjuge não pode ser futura.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validação de CEP
+    if (cep.length !== 8) {
+      // Exemplo de validação simples
+      toast({
+        title: "CEP inválido",
+        description: "Por favor, insira um CEP válido com 8 dígitos.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
+      // Cria um objeto FormData para enviar os dados e os arquivos
+      const formData = new FormData();
+      formData.append("cardId", cardId.toString());
+      formData.append("tipoPessoa", tipoPessoa);
+      formData.append("cnpj", cnpj);
+      formData.append("razaoSocial", razaoSocial);
+      formData.append("estadoCivil", estadoCivil);
+      formData.append("cpfConjuge", cpfConjuge);
+      formData.append("rgConjuge", rgConjuge);
+      formData.append("nomeCompleto", nomeCompleto);
+      formData.append("nomeCompletoConjuge", nomeCompletoConjuge);
+      formData.append("email", email);
+      formData.append("emailConjuge", emailConjuge);
+      formData.append("telefone", telefone);
+      formData.append("telefoneConjuge", telefoneConjuge);
+      formData.append("nacionalidade", nacionalidade);
+      formData.append("nacionalidadeConjuge", nacionalidadeConjuge);
+      formData.append("naturalidade", naturalidade);
+      formData.append("naturalidadeConjuge", naturalidadeConjuge);
+      formData.append("dataNascimento", dataNascimento);
+      formData.append("cpf", cpf);
+      formData.append("rg", rg);
+      formData.append("orgaoExpedidor", orgaoExpedidor);
+      formData.append("cep", cep);
+      formData.append("estado", estado);
+      formData.append("bairro", bairro);
+      formData.append("endereco", endereco);
+      formData.append("numero", numero);
+      formData.append("complemento", complemento);
+
+      // **Anexos Obrigatórios**
+      formData.append("anexoCpfRgMotorista", anexoCpfRgMotorista);
+      formData.append("anexoResidencia", anexoResidencia);
+      if (isPessoaJuridica && anexoContratoSocial) {
+        formData.append("anexoContratoSocial", anexoContratoSocial);
+      }
+
+      if (anexoCpfRgMotoristaConj) formData.append("anexoCpfRgMotoristaConj", anexoCpfRgMotoristaConj);
+      if (anexoEstadoCivil) formData.append("anexoEstadoCivil", anexoEstadoCivil);
+      if (anexoResidencia) formData.append("anexoResidencia", anexoResidencia);
+      if (anexoContratoSocial) formData.append("anexoContratoSocial", anexoContratoSocial);
+
+      // Enviar os dados ao backend
       const response = await api.post("/saveProprietarioToCard", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -201,6 +426,7 @@ const SecondForm = () => {
 
       router.push(`/formulariopartedois?cardId=${cardId}`);
     } catch (error) {
+      console.error("Erro ao enviar os dados:", error);
       toast({
         title: "Erro no envio",
         description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
@@ -463,7 +689,7 @@ const SecondForm = () => {
                 <input
                   type="text"
                   className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                  placeholder="Digite o seu RG"
+                  placeholder="Digite o seu Orgão Expeditor"
                   value={orgaoExpedidor}
                   onChange={(e) => setOrgaoExpedidor(e.target.value)}
                 />
@@ -544,7 +770,7 @@ const SecondForm = () => {
 
             {/* Inputs de anexo de arquivos */}
             <div className="w-full">
-              <label className="block mb-2">Anexar CPF, RG ou Carteira de motorista</label>
+              <label className="block mb-2">Anexar CPF, RG ou Carteira de motorista (Obrigatório)</label>
               <input
                 type="file"
                 className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
@@ -564,7 +790,7 @@ const SecondForm = () => {
             </div>
 
             <div className="w-full">
-              <label className="block mb-2">Anexar Comprovante de Residência</label>
+              <label className="block mb-2">Anexar Comprovante de Residência (Obrigatório)</label>
               <input
                 type="file"
                 className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"

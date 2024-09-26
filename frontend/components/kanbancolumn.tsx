@@ -1,3 +1,5 @@
+// components/kanbancolumn.tsx
+
 "use client";
 import { Fragment, useRef, useState } from "react";
 import { useDrop } from "react-dnd";
@@ -21,7 +23,8 @@ interface KanbanColumnProps {
   columns: Column[];
   onCardMove: (cardId: string, targetColumnId: number) => void;
   onColumnNameChange: (columnId: number, newColumnName: string) => void;
-  onCardRemoved: (cardId: string) => void; // Adicione esta linha
+  onCardRemoved: (cardId: string) => void;
+  onCardAdded: (columnId: number, newCard: any) => void; // Nova prop
 }
 
 const KanbanColumn = ({
@@ -31,13 +34,11 @@ const KanbanColumn = ({
   columns,
   onCardMove,
   onColumnNameChange,
-  onCardRemoved, // Receba a prop aqui
+  onCardRemoved,
+  onCardAdded, // Receba a nova prop
 }: KanbanColumnProps) => {
-  const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState(column.name); // Armazena o novo nome da coluna
-  const [newCardTitle, setNewCardTitle] = useState("");
-  const [newCardDetails, setNewCardDetails] = useState("");
 
   const columnRef = useRef<HTMLDivElement>(null); // Ref para a div da coluna
 
@@ -64,15 +65,24 @@ const KanbanColumn = ({
       setIsEditDialogOpen(false);
     } catch (error) {
       console.error("Erro ao editar nome da coluna:", error);
+      // Opcional: Adicione feedback ao usuário, como uma notificação de erro
     }
   };
 
-  const handleAddCard = () => {
-    const newCard = { id: Date.now().toString(), title: newCardTitle, details: newCardDetails };
-    column.cards.push(newCard); // Atualize a coluna localmente
-    setNewCardTitle("");
-    setNewCardDetails("");
-    setIsCardDialogOpen(false);
+  // Função para adicionar um novo card em branco
+  const handleAddBlankCard = async () => {
+    try {
+      // Faz a requisição para criar um card em branco
+      const response = await api.post(`/cards/blank`, { boardId });
+
+      const newCard = response.data;
+
+      // Chama a função de callback para atualizar o estado no componente pai
+      onCardAdded(column.id, newCard);
+    } catch (error) {
+      console.error("Erro ao adicionar card em branco:", error);
+      // Opcional: Adicione feedback ao usuário, como uma notificação de erro
+    }
   };
 
   drop(columnRef); // Aplicar o drop na referência da coluna
@@ -96,28 +106,14 @@ const KanbanColumn = ({
             boardId={boardId}
             columnName={column.name}
             columns={columns}
-            onCardRemoved={onCardRemoved} // Passe a prop para o KanbanCard
+            onCardRemoved={onCardRemoved}
           />
         ))}
 
-        {/* Diálogo para adicionar um novo card */}
-        <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full my-[20px] bg-[#87A644]">Novo card</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Novo Card</DialogTitle>
-            </DialogHeader>
-            <Input value={newCardTitle} onChange={(e) => setNewCardTitle(e.target.value)} placeholder="Título do card" />
-            <Textarea value={newCardDetails} onChange={(e) => setNewCardDetails(e.target.value)} placeholder="Detalhes do card" />
-            <DialogFooter>
-              <Button className="bg-[#87A644] w-full" onClick={handleAddCard}>
-                Salvar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Botão para adicionar um novo card em branco */}
+        <Button className="w-full my-[20px] bg-[#87A644]" onClick={handleAddBlankCard}>
+          Novo card
+        </Button>
 
         {/* Diálogo para editar o nome da coluna */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
