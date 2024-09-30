@@ -8,7 +8,7 @@ import "../styles/globals.css";
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body>
         <Provider store={store}>
           <ToastProvider>

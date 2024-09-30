@@ -401,7 +401,6 @@ const SecondForm = () => {
 
       // **Anexos Obrigatórios**
       formData.append("anexoCpfRgMotorista", anexoCpfRgMotorista);
-      formData.append("anexoResidencia", anexoResidencia);
       if (isPessoaJuridica && anexoContratoSocial) {
         formData.append("anexoContratoSocial", anexoContratoSocial);
       }
@@ -409,7 +408,6 @@ const SecondForm = () => {
       if (anexoCpfRgMotoristaConj) formData.append("anexoCpfRgMotoristaConj", anexoCpfRgMotoristaConj);
       if (anexoEstadoCivil) formData.append("anexoEstadoCivil", anexoEstadoCivil);
       if (anexoResidencia) formData.append("anexoResidencia", anexoResidencia);
-      if (anexoContratoSocial) formData.append("anexoContratoSocial", anexoContratoSocial);
 
       // Enviar os dados ao backend
       const response = await api.post("/saveProprietarioToCard", formData, {
@@ -580,6 +578,7 @@ const SecondForm = () => {
                     value={dataNascimentoConjuge}
                     onChange={(e) => setDataNascimentoConjuge(e.target.value)}
                   />
+                  <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span>
                 </div>
               </>
             )}
@@ -658,6 +657,7 @@ const SecondForm = () => {
                   value={dataNascimento}
                   onChange={(e) => setDataNascimento(e.target.value)}
                 />
+                <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span>
               </div>
             </div>
 

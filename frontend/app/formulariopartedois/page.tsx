@@ -518,8 +518,8 @@ const ThirdForm = () => {
             </div>
 
             {/* Botão de Envio */}
-            <div className="col-span-2 flex justify-end">
-              <Button type="submit" className="py-3 px-6 bg-[#87A644] hover:bg-[#5b702e] text-white rounded-lg">
+            <div className="col-span-2 flex justify-end w-full mb-10">
+              <Button type="submit" className="py-7 px-6 bg-[#87A644] hover:bg-[#5b702e] text-white rounded-lg w-full max-w-ful">
                 Enviar
               </Button>
             </div>

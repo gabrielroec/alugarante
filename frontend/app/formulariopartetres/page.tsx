@@ -225,7 +225,6 @@ const FourthForm = () => {
       return;
     }
 
-    // Se o usuário selecionou "Sim" para "Já tem os dados do locatário?"
     if (isLocatario) {
       // Validação dos campos obrigatórios do locatário
 
@@ -396,14 +395,12 @@ const FourthForm = () => {
           return;
         }
       }
-    }
 
-    try {
-      const formData = new FormData();
-      formData.append("cardId", cardId.toString());
+      try {
+        const formData = new FormData();
+        formData.append("cardId", cardId.toString());
 
-      // Adicionar dados do locatário apenas se isLocatario for true
-      if (isLocatario) {
+        // Adicionar dados do locatário
         formData.append("tipoPessoa", isLocatarioPessoaJuridica ? "Jurídica" : "Física");
         formData.append("nomeCompleto", locatarioNomeCompleto);
         formData.append("email", locatarioEmail);
@@ -444,35 +441,40 @@ const FourthForm = () => {
             formData.append("anexoUltimoBalancoLocatario", anexoUltimoBalancoLocatario);
           }
         }
+
+        // Enviar os dados para a rota do backend
+        const response = await api.post("/saveLocatarioToCard", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        // Exibir toast de sucesso
+        toast({
+          title: "Formulário enviado",
+          description: "Os dados foram salvos com sucesso.",
+          variant: "default",
+        });
+
+        // Redirecionar para a página inicial ou próxima etapa
+        setTimeout(() => {
+          router.push(`/`);
+        }, 100);
+      } catch (error) {
+        console.error("Erro ao enviar os dados:", error);
+        toast({
+          title: "Erro no envio",
+          description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false); // Finaliza a submissão
       }
-
-      // Enviar os dados para a rota do backend
-      const response = await api.post("/saveLocatarioToCard", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      // Exibir toast de sucesso
-      toast({
-        title: "Formulário enviado",
-        description: "Os dados foram salvos com sucesso.",
-        variant: "default",
-      });
-
-      // Redirecionar para a página inicial ou próxima etapa
-      setTimeout(() => {
-        router.push(`/`);
-      }, 100);
-    } catch (error) {
-      console.error("Erro ao enviar os dados:", error);
-      toast({
-        title: "Erro no envio",
-        description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false); // Finaliza a submissão
+    } else {
+      // Se não tiver os dados do locatário, apenas redireciona ou toma outra ação
+      // Por exemplo, redirecionar para a página inicial
+      router.push(`/`);
+      setIsSubmitting(false);
     }
   };
 
@@ -640,6 +642,7 @@ const FourthForm = () => {
                       value={locatarioDataNascimento}
                       onChange={(e) => setLocatarioDataNascimento(e.target.value)} // Certifique-se de que o valor seja uma string de data
                     />
+                    <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span>
                   </div>
                 </div>
 
@@ -816,74 +819,42 @@ const FourthForm = () => {
                 </div>
 
                 {/* Campos de upload de arquivo obrigatórios */}
-                {isLocatario && (
-                  <>
-                    <div className="w-full">
-                      <label className="block mb-2">
-                        Anexar CPF/RG <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="file"
-                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => setAnexoCpfRgMotoristaLocatario(e.target.files ? e.target.files[0] : undefined)}
-                      />
-                    </div>
+                <div className="w-full">
+                  <label className="block mb-2">
+                    Anexar CPF/RG <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setAnexoCpfRgMotoristaLocatario(e.target.files ? e.target.files[0] : undefined)}
+                  />
+                </div>
 
-                    <div className="w-full">
-                      <label className="block mb-2">
-                        Anexar Comprovante de Estado Civil <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="file"
-                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => setAnexoEstadoCivilLocatario(e.target.files ? e.target.files[0] : undefined)}
-                      />
-                    </div>
+                <div className="w-full">
+                  <label className="block mb-2">
+                    Anexar Comprovante de Estado Civil <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setAnexoEstadoCivilLocatario(e.target.files ? e.target.files[0] : undefined)}
+                  />
+                </div>
 
-                    <div className="w-full">
-                      <label className="block mb-2">
-                        Anexar Comprovante de Residência <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="file"
-                        className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => setAnexoResidenciaLocatario(e.target.files ? e.target.files[0] : undefined)}
-                      />
-                    </div>
+                <div className="w-full">
+                  <label className="block mb-2">
+                    Anexar Comprovante de Residência <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setAnexoResidenciaLocatario(e.target.files ? e.target.files[0] : undefined)}
+                  />
+                </div>
 
-                    {/* Campos de upload de arquivo para Pessoa Jurídica */}
-                    {isLocatarioPessoaJuridica && (
-                      <>
-                        <div className="w-full">
-                          <label className="block mb-2">
-                            Anexar Contrato Social <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="file"
-                            className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                            accept="image/*,application/pdf"
-                            onChange={(e) => setAnexoContratoSocialLocatario(e.target.files ? e.target.files[0] : undefined)}
-                          />
-                        </div>
-
-                        <div className="w-full">
-                          <label className="block mb-2">
-                            Anexar Último Balanço <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="file"
-                            className="w-full border-[#ccc] border appearance-none rounded-2xl px-10 py-4"
-                            accept="image/*,application/pdf"
-                            onChange={(e) => setAnexoUltimoBalancoLocatario(e.target.files ? e.target.files[0] : undefined)}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
                 {/* Campos de upload de arquivo para Pessoa Jurídica */}
                 {isLocatarioPessoaJuridica && (
                   <>
@@ -912,15 +883,32 @@ const FourthForm = () => {
                     </div>
                   </>
                 )}
+
+                {/* Botão de Envio */}
+                <div className="w-full flex justify-end ">
+                  <Button
+                    type="submit"
+                    className="py-7 px-6 bg-[#87A644] hover:bg-[#5b702e] text-white rounded-lg w-full max-w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Enviando..." : "Enviar"}
+                  </Button>
+                </div>
               </>
             )}
 
-            {/* Botão de Envio */}
-            <div className="w-full flex justify-end">
-              <Button type="submit" className="py-3 px-6 bg-[#87A644] hover:bg-[#5b702e] text-white rounded-lg" disabled={isSubmitting}>
-                {isSubmitting ? "Enviando..." : "Enviar"}
-              </Button>
-            </div>
+            {/* Se não tiver os dados do locatário, ainda exibe o botão de envio */}
+            {!isLocatario && (
+              <div className="w-full flex justify-end ">
+                <Button
+                  type="submit"
+                  className="py-7 px-6 bg-[#87A644] hover:bg-[#5b702e] text-white rounded-lg w-full max-w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Redirecionando..." : "Continuar"}
+                </Button>
+              </div>
+            )}
           </form>
         </div>
       </div>
