@@ -374,45 +374,46 @@ export const saveLocatarioToCard = async (req: Request, res: Response) => {
     endereco,
     numero,
     complemento,
+    cidade,
   } = req.body;
 
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
   try {
-    // Se a dataNascimento não for fornecida ou for inválida, atribua uma data fictícia
-    const parsedDataNascimento = dataNascimento && !isNaN(Date.parse(dataNascimento)) ? new Date(dataNascimento) : new Date("1900-01-01"); // Data fictícia
+    // Parse da data de nascimento
+    const parsedDataNascimento = dataNascimento && !isNaN(Date.parse(dataNascimento)) ? new Date(dataNascimento) : null;
 
     const locatario = await prisma.locatario.create({
       data: {
-        nomeCompleto: "Nome Não Fornecido",
-        email: "email@exemplo.com",
-        telefone: "000000000",
-        nacionalidade: "Nacionalidade Não Informada",
-        naturalidade: "Naturalidade Não Informada",
-        estadoCivil: "Não Informado",
-        dataNascimento: new Date("1900-01-01T00:00:00.000Z"),
-        cpf: null,
-        rg: null,
-        orgaoExpedidor: null,
-        cnpj: null,
-        razaoSocial: null,
-        cep: "00000-000",
-        estado: "Estado Não Informado",
-        bairro: "Bairro Não Informado",
-        endereco: "Endereço Não Informado",
-        numero: "S/N",
-        complemento: null,
-        anexoCpfRgMotoristaLocatario: null,
-        anexoEstadoCivilLocatario: null,
-        anexoResidenciaLocatario: null,
-        anexoContratoSocialLocatario: null,
-        anexoUltimoBalancoLocatario: null,
+        nomeCompleto,
+        email,
+        telefone,
+        nacionalidade,
+        naturalidade,
+        estadoCivil,
+        dataNascimento: parsedDataNascimento,
+        cpf: tipoPessoa === "Física" ? cpf : null,
+        rg: tipoPessoa === "Física" ? rg : null,
+        orgaoExpedidor: tipoPessoa === "Física" ? orgaoExpedidor : null,
+        cnpj: tipoPessoa === "Jurídica" ? cnpj : null,
+        razaoSocial: tipoPessoa === "Jurídica" ? razaoSocial : null,
+        cep,
+        estado,
+        bairro,
+        endereco,
+        numero,
+        complemento,
+        anexoCpfRgMotoristaLocatario: files.anexoCpfRgMotoristaLocatario ? files.anexoCpfRgMotoristaLocatario[0].path : null,
+        anexoEstadoCivilLocatario: files.anexoEstadoCivilLocatario ? files.anexoEstadoCivilLocatario[0].path : null,
+        anexoResidenciaLocatario: files.anexoResidenciaLocatario ? files.anexoResidenciaLocatario[0].path : null,
+        anexoContratoSocialLocatario: files.anexoContratoSocialLocatario ? files.anexoContratoSocialLocatario[0].path : null,
+        anexoUltimoBalancoLocatario: files.anexoUltimoBalancoLocatario ? files.anexoUltimoBalancoLocatario[0].path : null,
         card: {
           connect: {
-            id: 6,
+            id: parseInt(cardId),
           },
         },
-        tipoPessoa: "Física", // ou "Jurídica" dependendo do valor apropriado
+        tipoPessoa,
       },
     });
 
