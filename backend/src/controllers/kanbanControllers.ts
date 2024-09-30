@@ -3,6 +3,11 @@ import { prisma } from "../prismaClient"; // Importação do Prisma
 import upload from "../middlewares/multer";
 import fs from "fs/promises"; // Para operações de sistema de arquivos
 import path from "path"; // Para manipulação de caminhos de arquivos
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import { AuthRequest } from "../middlewares/auth";
+
 // Tipagem de parâmetros para o Request com params
 interface Params {
   boardId?: string;
@@ -1156,5 +1161,179 @@ export const createBlankCard = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao criar card em branco:", error);
     res.status(500).json({ message: "Erro ao criar card em branco." });
+  }
+};
+
+//Login
+
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { nome, telefone, email, senha, isAdmin } = req.body;
+    const foto = req.file ? req.file.path : null;
+    console.log(req.body);
+
+    // Verifique se todos os campos necessários estão presentes
+    if (!nome || !telefone || !email || !senha || !foto || (isAdmin !== "sim" && isAdmin !== "não")) {
+      return res.status(400).json({
+        message: "Algo está faltando ou valores inválidos.",
+        success: false,
+      });
+    }
+
+    // Validações da senha
+    if (senha.length < 8) {
+      return res.status(400).json({
+        message: "A senha deve ter pelo menos 8 caracteres.",
+        success: false,
+      });
+    }
+
+    const hasUpperCase = /[A-Z]/.test(senha);
+    if (!hasUpperCase) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos uma letra maiúscula.",
+        success: false,
+      });
+    }
+
+    const hasSpecialChar = /[\W_]/.test(senha);
+    if (!hasSpecialChar) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos um caractere especial.",
+        success: false,
+      });
+    }
+
+    const hasDigit = /\d/.test(senha);
+    if (!hasDigit) {
+      return res.status(400).json({
+        message: "A senha deve conter pelo menos um dígito.",
+        success: false,
+      });
+    }
+
+    // Verifique se o email já está sendo usado
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email já está sendo utilizado.",
+        success: false,
+      });
+    }
+
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(senha, 10);
+
+    // Criação do novo usuário
+    const newUser = await prisma.user.create({
+      data: {
+        nome,
+        telefone,
+        email,
+        senha: hashedPassword,
+        foto,
+        isAdmin: isAdmin === "sim" ? true : false,
+      },
+    });
+
+    return res.status(201).json({
+      message: "Conta criada com sucesso.",
+      success: true,
+      newUser,
+    });
+  } catch (error) {
+    console.error("Ocorreu um erro ao criar a conta.", error);
+    res.status(500).json({
+      message: "Ocorreu um erro ao criar a conta.",
+      success: false,
+    });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).json({
+        message: "Email e senha são obrigatórios.",
+        success: false,
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Email ou senha incorretos.",
+        success: false,
+      });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(senha, user.senha);
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        message: "Email ou senha incorretos.",
+        success: false,
+      });
+    }
+
+    const tokenData = { userId: user.id, isAdmin: user.isAdmin };
+    const secretKey = process.env.SECRET_KEY;
+
+    if (!secretKey) {
+      return res.status(500).json({
+        message: "Erro interno do servidor. Secret Key não está definida.",
+        success: false,
+      });
+    }
+
+    const token = jwt.sign(tokenData, secretKey, {
+      expiresIn: "1d",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
+    const { senha: _, ...userData } = user;
+
+    return res.status(200).json({
+      message: "Login realizado com sucesso.",
+      success: true,
+      user: userData,
+    });
+  } catch (error) {
+    console.error("Ocorreu um erro ao fazer login.", error);
+    res.status(500).json({
+      message: "Ocorreu um erro ao fazer login.",
+      success: false,
+    });
+  }
+};
+
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user.userId; // Obtido pelo middleware de autenticação
+
+    const user = await prisma.user.findUnique({
+      where: { id: Number(userId) },
+      select: { id: true, nome: true, foto: true }, // Seleciona apenas os campos necessários
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Erro ao obter usuário:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 };

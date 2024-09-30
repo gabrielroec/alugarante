@@ -164,3 +164,15 @@ model Anexo {
   path    String
   card    Card   @relation(fields: [cardId], references: [id])
 }
+
+model User {
+  id        Int     @id @default(autoincrement())
+  nome      String
+  telefone     String
+  email     String  @unique
+  senha    String
+  foto     String? // Foto pode ser opcional
+  isAdmin   Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

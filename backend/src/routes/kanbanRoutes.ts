@@ -25,9 +25,12 @@ import {
   getAnexosForCard,
   deleteCard,
   createBlankCard,
+  register,
+  login,
+  getCurrentUser,
 } from "../controllers/kanbanControllers";
 import upload from "../middlewares/multer"; // Importando o middleware de upload
-
+import auth from "../middlewares/auth";
 const router = Router();
 
 // Rota para pegar todos os boards
@@ -159,5 +162,12 @@ router.get("/cards/:cardId/anexos", getAnexosForCard);
 router.delete("/cards/:cardId", deleteCard);
 
 router.post("/cards/blank", createBlankCard);
+
+router.post("/users/register", upload.single("foto"), register);
+
+router.post("/users/login", login);
+
+// Rota protegida para obter dados do usuário logado
+router.get("/users/me", auth, getCurrentUser);
 
 export default router;
