@@ -24,7 +24,7 @@ const moveCard = async (cardId: string, targetColumnId: number, dispatch: AppDis
     }
 
     // Após mover o card, faça um novo fetch dos dados do board para atualizar o estado global
-    dispatch(fetchBoardById(boardId));
+    dispatch(fetchBoardById(boardId.toString()));
   } catch (error) {
     console.error("Erro ao mover card:", error);
   }
@@ -39,7 +39,7 @@ const KanbanBoard = () => {
 
   useEffect(() => {
     if (!selectedBoard) {
-      dispatch(fetchBoardById(1)); // Carregar o board com ID 1 como padrão
+      dispatch(fetchBoardById("1"));
     }
   }, [dispatch, selectedBoard]);
 

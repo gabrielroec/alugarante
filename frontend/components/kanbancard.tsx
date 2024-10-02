@@ -18,6 +18,10 @@ interface Column {
   // Outras propriedades, se houver
 }
 
+interface Board {
+  id: number;
+  name: string;
+}
 interface KanbanCardProps {
   card: any;
   boardId: number;
@@ -27,8 +31,9 @@ interface KanbanCardProps {
 }
 
 const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId, columnName, columns, onCardRemoved }, forwardedRef) => {
-  const [allBoards, setAllBoards] = useState([]); // Estado para armazenar todos os boards
+  const [allBoards, setAllBoards] = useState<Board[]>([]);
   const [currentBoardId, setCurrentBoardId] = useState(boardId); // Estado para o board atual
+
   const { toast } = useToast();
 
   const internalRef = useRef<HTMLDivElement>(null);
@@ -49,7 +54,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
 
       // Chama a função para remover o card do estado local
       if (onCardRemoved) {
-        onCardRemoved(cardId);
+        onCardRemoved(cardId.toString());
         toast({
           variant: "default",
           title: "Card movido!",

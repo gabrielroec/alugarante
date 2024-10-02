@@ -17,7 +17,7 @@ const RegisterUser = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isAdmin, setIsAdmin] = useState("não");
-  const [foto, setFoto] = useState(null);
+  const [foto, setFoto] = useState<File | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: any) => {
@@ -140,8 +140,11 @@ const RegisterUser = () => {
               type="file"
               accept="image/*"
               onChange={(e) => {
-                console.log("Arquivo selecionado:", e.target.files[0]);
-                setFoto(e.target.files[0]);
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  console.log("Arquivo selecionado:", files[0]);
+                  setFoto(files[0]);
+                }
               }}
             />
           </div>
