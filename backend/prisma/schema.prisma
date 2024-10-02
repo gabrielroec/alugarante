@@ -10,7 +10,7 @@ datasource db {
 model Board {
   id        Int      @id @default(autoincrement())
   name      String
-  columns   Column[] // Já no plural
+  columns   Column[] 
 }
 
 model Column {
@@ -18,14 +18,14 @@ model Column {
   name      String
   boardId   Int
   board     Board    @relation(fields: [boardId], references: [id])
-  cards     Card[]   // Já no plural
+  cards     Card[]  
 }
 
 model Imovel {
   id                   Int            @id @default(autoincrement())
   tipoImovelSelecionado String
   valorAluguel          Float
-  valorIptu             Float?         // Adicione o `?` para tornar opcional
+  valorIptu             Float?         
   valorCondominio       Float
   valorGas              Float
   planoSelecionado     String
@@ -38,7 +38,7 @@ model Imovel {
 model Proprietario {
   id                        Int    @id @default(autoincrement())
   tipoPessoa                String
-  cnpj                      String? // Já opcional
+  cnpj                      String? 
   razaoSocial               String?
   estadoCivil               String
   cpfConjuge                String?
@@ -95,12 +95,12 @@ model ImovelDetalhes {
   numero                String
   complemento           String?
 
-  // Campos para armazenar anexos do imóvel
-  anexoCondominio       String?  // Caminho do comprovante de condomínio
-  anexoIptu             String?  // Caminho do comprovante de IPTU
-  anexoAgua             String?  // Caminho da última conta de água
-  anexoLuz              String?  // Caminho da última conta de luz
-  anexoEscritura        String?  // Caminho da escritura do imóvel
+
+  anexoCondominio       String?  
+  anexoIptu             String?  
+  anexoAgua             String?  
+  anexoLuz              String?  
+  anexoEscritura        String?  
 
   card                  Card?    @relation(fields: [cardId], references: [id])
   cardId                Int      @unique
@@ -115,7 +115,7 @@ model Locatario {
   nacionalidade         String
   naturalidade          String
   estadoCivil           String
-  dataNascimento        DateTime?  // Tornado opcional
+  dataNascimento        DateTime? 
   cpf                   String?
   rg                    String?
   orgaoExpedidor        String?
@@ -128,7 +128,6 @@ model Locatario {
   numero                String
   complemento           String?
 
-  // Campos para armazenar anexos do locatário
   anexoCpfRgMotoristaLocatario   String?
   anexoEstadoCivilLocatario      String?
   anexoResidenciaLocatario       String?
@@ -146,7 +145,7 @@ model Card {
   columnId              Int
   column                Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
   
-  // Relacionamentos
+
   imovel                Imovel?
   proprietario          Proprietario?
   imovelDetalhes        ImovelDetalhes?
@@ -155,7 +154,7 @@ model Card {
 
   createdAt             DateTime    @default(now())
 
-  anexos Anexo[] // Renomeado para 'anexos'
+  anexos Anexo[] 
 }
 
 model Anexo {
@@ -171,7 +170,7 @@ model User {
   telefone     String
   email     String  @unique
   senha    String
-  foto     String? // Foto pode ser opcional
+  foto     String? 
   isAdmin   Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
