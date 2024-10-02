@@ -50,12 +50,15 @@ const RegisterUser = () => {
       });
 
       // Redirecionar ou limpar o formulário
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao criar conta:", error);
+
+      const errorMessage = error?.response?.data?.message || error?.message || "Erro desconhecido.";
+
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: error.response?.data?.message || error.message || "Erro desconhecido.",
+        description: errorMessage,
       });
     }
   };
