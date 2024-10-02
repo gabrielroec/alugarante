@@ -2,7 +2,7 @@
 import ClickSvgIcon from "@/assets/ClickIcon";
 import LandingPageHeaderForm from "@/components/LandingPageHeaderForm";
 import { Button } from "@/components/ui/button";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
@@ -479,7 +479,7 @@ const FourthForm = () => {
   };
 
   return (
-    <>
+    <Suspense fallback={<div>Carregando formulário...</div>}>
       <LandingPageHeaderForm />
       <div className="min-h-screen flex flex-col items-center mt-10">
         <div className="w-full max-w-4xl">
@@ -912,7 +912,7 @@ const FourthForm = () => {
           </form>
         </div>
       </div>
-    </>
+    </Suspense>
   );
 };
 
