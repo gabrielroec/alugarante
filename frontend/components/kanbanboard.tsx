@@ -115,7 +115,7 @@ const KanbanBoard = () => {
       toast({
         variant: "destructive",
         title: "Erro ao deletar coluna!",
-        description: "Certifique-se que a sua coluna esteja sem cards para poder agalá-la.",
+        description: "Certifique-se que a sua coluna esteja sem cards para poder ser deletada.",
       });
     }
   };
