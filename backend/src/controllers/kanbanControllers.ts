@@ -1337,3 +1337,22 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
+export const deleteColumn = async (req: Request, res: Response) => {
+  const { columnId } = req.params;
+
+  if (!columnId) {
+    return res.status(400).json({ message: "ID da coluna não fornecido" });
+  }
+
+  try {
+    // Exclui a coluna do banco de dados
+    await prisma.column.delete({
+      where: { id: parseInt(columnId) },
+    });
+
+    res.status(200).json({ message: "Coluna excluída com sucesso" });
+  } catch (error) {
+    console.error("Erro ao excluir coluna:", error);
+    res.status(500).json({ message: "Erro ao excluir coluna" });
+  }
+};

@@ -28,6 +28,7 @@ import {
   register,
   login,
   getCurrentUser,
+  deleteColumn,
 } from "../controllers/kanbanControllers";
 import upload from "../middlewares/multer"; // Importando o middleware de upload
 import auth from "../middlewares/auth";
@@ -169,5 +170,8 @@ router.post("/users/login", login);
 
 // Rota protegida para obter dados do usuário logado
 router.get("/users/me", auth, getCurrentUser);
+
+// Rota para deletar uma coluna
+router.delete("/columns/:columnId", deleteColumn);
 
 export default router;
