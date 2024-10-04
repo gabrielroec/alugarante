@@ -520,11 +520,8 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
         description: "O card foi excluído com sucesso.",
       });
 
-      // Chama a função para notificar o componente pai sobre a remoção do card
-      onCardRemoved(card.id.toString());
-
-      // Fecha o diálogo de exclusão
-      setIsDeleteDialogOpen(false);
+      // Recarrega a página
+      window.location.reload();
     } catch (error) {
       console.error("Erro ao excluir o card:", error);
       toast({

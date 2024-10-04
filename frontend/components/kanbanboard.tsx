@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 // Função para mover o card entre colunas e atualizar no backend
 const moveCard = async (cardId: string, targetColumnId: number, dispatch: AppDispatch, boardId: number) => {
@@ -36,6 +37,7 @@ const KanbanBoard = () => {
   const [columns, setColumns] = useState<any[]>([]);
   const [isAddColumnDialogOpen, setIsAddColumnDialogOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!selectedBoard) {
@@ -104,6 +106,20 @@ const KanbanBoard = () => {
     }
   };
 
+  const handleDeleteColumn = async (columnId: number) => {
+    try {
+      await api.delete(`/columns/${columnId}`);
+      setColumns((prevColumns) => prevColumns.filter((col) => col.id !== columnId));
+    } catch (error) {
+      console.error("Erro ao deletar coluna:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao deletar coluna!",
+        description: "Certifique-se que a sua coluna esteja sem cards para poder agalá-la.",
+      });
+    }
+  };
+
   if (loading) {
     return <p>Carregando...</p>;
   }
@@ -111,6 +127,7 @@ const KanbanBoard = () => {
   if (error) {
     return <p>Erro ao carregar boards: {error}</p>;
   }
+
   const handleCardAdded = (columnId: number, newCard: any) => {
     setColumns((prevColumns) =>
       prevColumns.map((col) => {
@@ -158,7 +175,8 @@ const KanbanBoard = () => {
             onCardMove={handleCardMove}
             onColumnNameChange={handleColumnNameChange}
             onCardRemoved={handleCardRemoved}
-            onCardAdded={handleCardAdded} // Passa a nova prop
+            onCardAdded={handleCardAdded}
+            onDeleteColumn={handleDeleteColumn} // Passar a função de deletar coluna
           />
         ))}
       </div>
