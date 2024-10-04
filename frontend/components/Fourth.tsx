@@ -1,7 +1,18 @@
+"use client";
 import React from "react";
 import { Button } from "./ui/button";
 
 const Fourth = () => {
+  const scrollToSecond = () => {
+    const secondElement = document.getElementById("second-section");
+    if (secondElement) {
+      secondElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   return (
     <div className="bg-[#87A644] py-16 rounded-t-[40px]">
       <div className="container">
@@ -14,7 +25,9 @@ const Fourth = () => {
           e equipe especializada, garantimos o pagamento do seu aluguel, proporcionando a segurança<br></br> que você precisa para
           administrar seu imóvel diretamente.
         </p>
-        <Button className="text-white w-full py-8 bg-[#024059] mt-4">Fazer cotação</Button>
+        <Button onClick={scrollToSecond} className="text-white w-full py-8 bg-[#024059] mt-4">
+          Fazer cotação
+        </Button>
       </div>
     </div>
   );

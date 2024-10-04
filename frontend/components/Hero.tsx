@@ -1,8 +1,18 @@
+"use client";
 import { Fragment } from "react";
 import heroImg from "@/assets/hero.svg";
 import Image from "next/image";
 import { Button } from "./ui/button";
 const Hero = () => {
+  const scrollToSecond = () => {
+    const secondElement = document.getElementById("second-section");
+    if (secondElement) {
+      secondElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
   return (
     <Fragment>
       <section className="bg-gradient-to-t from-[#F3F6ED] to-[#fff] py-16 max-md:flex-col relative rounded-[40px]">
@@ -15,7 +25,9 @@ const Hero = () => {
               A Alugarante é especializada em fiança locatícia, oferecendo segurança e tranquilidade para proprietários que preferem uma
               gestão direta, sem intermediários.
             </p>
-            <Button className="bg-[#87A644] hover:bg-[#7a973c] px-8 py-6 rounded-2xl">Faça uma cotação agora</Button>
+            <Button onClick={scrollToSecond} className="bg-[#87A644] hover:bg-[#7a973c] px-8 py-6 rounded-2xl">
+              Faça uma cotação agora
+            </Button>
           </div>
           <div className="mt-8 md:mt-0 md:w-1/2">
             <Image src={heroImg} alt="hero" />
