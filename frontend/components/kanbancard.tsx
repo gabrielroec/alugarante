@@ -505,49 +505,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
     setSelectedAnexosFiles(e.target.files);
   };
 
-  const handleUploadAnexos = async () => {
-    if (!selectedAnexosFiles || selectedAnexosFiles.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Por favor, selecione pelo menos um arquivo para upload.",
-      });
-      return;
-    }
-
-    const formData = new FormData();
-    for (let i = 0; i < selectedAnexosFiles.length; i++) {
-      formData.append("anexos", selectedAnexosFiles[i]);
-    }
-
-    try {
-      const response = await api.post(`/cards/${card.id}/anexos`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      // Atualiza a lista de anexos com os novos anexos
-      fetchCardAnexos();
-
-      toast({
-        variant: "default",
-        title: "Sucesso",
-        description: "Anexos adicionados com sucesso.",
-      });
-
-      // Fecha o diálogo e reseta os arquivos selecionados
-      setIsUploadAnexosDialogOpen(false);
-      setSelectedAnexosFiles(null);
-    } catch (error) {
-      console.error("Erro ao adicionar anexos:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Ocorreu um erro ao adicionar os anexos. Tente novamente.",
-      });
-    }
-  };
+  const handleUploadAnexos = async () => {};
 
   const handleDeleteCard = async () => {
     setIsDeleting(true);
@@ -917,7 +875,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
                 ) : (
                   ""
                 )}
-                {activeTab === "proprietario" && (
+                {activeTab === "proprietario" && proprietarioData && (
                   <div className="flex flex-col items-start gap-4">
                     <p>
                       <strong>Nome Completo:</strong> {proprietarioData?.nomeCompleto || "-"}
@@ -1000,14 +958,14 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
 
                     {/* Exibe botões para visualizar os anexos ou "-" */}
                     <div className="w-full">
-                      <p className="flex justify-between">
-                        <strong>Anexo CPF RG ou CNH:</strong>
-                        {proprietarioData?.anexoCpfRgMotorista ? (
+                      <p className="flex justify-between items-center mb-2">
+                        <strong>Anexo CPF/RG ou CNH:</strong>
+                        {proprietarioData.anexoCpfRgMotorista ? (
                           <Button
-                            className="bg-white hover:bg-white text-blue-400 p-0 m-b"
-                            onClick={() => handleOpenImageDialog(proprietarioData?.anexoCpfRgMotorista)}
+                            className="bg-white hover:bg-white text-blue-400 p-0"
+                            onClick={() => handleOpenImageDialog(proprietarioData.anexoCpfRgMotorista)}
                           >
-                            Ver Anexo CPF RG ou CNH
+                            Ver Anexo CPF/RG ou CNH
                           </Button>
                         ) : (
                           "-"
@@ -1015,7 +973,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
                       </p>
                       <p className="flex justify-between">
                         <strong>Anexo CPF RG ou CNH - Cônjuge:</strong>
-                        {proprietarioData?.anexoCpfRgMotorista ? (
+                        {proprietarioData?.anexoCpfRgMotoristaConj ? (
                           <Button
                             className="bg-white hover:bg-white text-blue-400 p-0 m-b"
                             onClick={() => handleOpenImageDialog(proprietarioData?.anexoCpfRgMotoristaConj)}
@@ -1028,7 +986,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
                       </p>
                       <p className="flex justify-between">
                         <strong>Anexo Estado Cívil:</strong>
-                        {proprietarioData?.anexoCpfRgMotorista ? (
+                        {proprietarioData?.anexoEstadoCivil ? (
                           <Button
                             className="bg-white hover:bg-white text-blue-400 p-0 m-b"
                             onClick={() => handleOpenImageDialog(proprietarioData?.anexoEstadoCivil)}
@@ -1041,7 +999,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
                       </p>
                       <p className="flex justify-between">
                         <strong>Anexo Residencial:</strong>
-                        {proprietarioData?.anexoCpfRgMotorista ? (
+                        {proprietarioData?.anexoResidencia ? (
                           <Button
                             className="bg-white hover:bg-white text-blue-400 p-0 m-b"
                             onClick={() => handleOpenImageDialog(proprietarioData?.anexoResidencia)}
@@ -1054,10 +1012,10 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
                       </p>
                       <p className="flex justify-between">
                         <strong>Anexo Contrato Social:</strong>
-                        {proprietarioData?.anexoCpfRgMotorista ? (
+                        {proprietarioData?.anexoContratoSocial ? (
                           <Button
                             className="bg-white hover:bg-white text-blue-400 p-0 m-b"
-                            onClick={() => handleOpenImageDialog(proprietarioData?.anexoResidencia)}
+                            onClick={() => handleOpenImageDialog(proprietarioData?.anexoContratoSocial)}
                           >
                             Ver Anexo Social
                           </Button>

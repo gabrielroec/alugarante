@@ -10,10 +10,10 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
-// Configurando CORS para permitir requisições do frontend
+// Configurando CORS para permitir requisições do frontend e do localhost:3000
 app.use(
   cors({
-    origin: "http://localhost:3000", // Verifique se o frontend está rodando nessa origem
+    origin: ["https://alugarante.vercel.app", "http://localhost:3000"], // Adicionando múltiplas origens
     credentials: true,
   })
 );

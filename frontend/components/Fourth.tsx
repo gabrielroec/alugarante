@@ -5,7 +5,7 @@ const Fourth = () => {
   return (
     <div className="bg-[#87A644] py-16 rounded-t-[40px]">
       <div className="container">
-        <h1 className="text-4xl font-bold mb-3 text-center text-white">
+        <h1 className="text-4xl font-bold mb-3 text-center text-white max-md:text-3xl">
           Escolha a <span className="text-[#003853]">Alu</span>
           <span className="text-white">garante</span> e Administre seu Imóvel <br></br>com Tranquilidade
         </h1>

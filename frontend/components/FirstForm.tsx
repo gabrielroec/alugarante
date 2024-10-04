@@ -17,10 +17,10 @@ export default function FirstForm() {
 
   // Estados para os campos do formulário
   const [tipoImovelSelecionado, setTipoImovelSelecionado] = useState("");
-  const [valorAluguel, setValorAluguel] = useState<string | null>(null);
-  const [valorIptu, setValorIptu] = useState<string | null>(null);
-  const [valorCondominio, setValorCondominio] = useState<string | null>(null);
-  const [valorGas, setValorGas] = useState<string | null>(null);
+  const [valorAluguel, setValorAluguel] = useState<string>(""); // Inicializado como string vazia
+  const [valorIptu, setValorIptu] = useState<string>(""); // Inicializado como string vazia
+  const [valorCondominio, setValorCondominio] = useState<string>(""); // Inicializado como string vazia
+  const [valorGas, setValorGas] = useState<string>(""); // Inicializado como string vazia
   const [planoSelecionado, setPlanoSelecionado] = useState("");
   const [valorMensal, setValorMensal] = useState(0);
   const [taxaSetup, setTaxaSetup] = useState(0);
@@ -59,8 +59,8 @@ export default function FirstForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação dos campos
-    if (!tipoImovelSelecionado || !valorAluguel || !valorIptu || !valorCondominio || !valorGas || !planoSelecionado) {
+    // Validação dos campos obrigatórios
+    if (!tipoImovelSelecionado || !valorAluguel || !valorIptu || !planoSelecionado) {
       toast({
         title: "Erro no envio",
         description: "Por favor, preencha todos os campos obrigatórios antes de enviar.",
@@ -80,9 +80,9 @@ export default function FirstForm() {
         cardId: createdCardId, // Inclui o cardId ao enviar os dados do imóvel
         tipoImovelSelecionado,
         valorAluguel,
-        valorIptu,
-        valorCondominio,
-        valorGas,
+        valorIptu, // Envia como string, pode ser vazio
+        valorCondominio, // Envia como string, pode ser vazio
+        valorGas, // Envia como string, pode ser vazio
         planoSelecionado,
         valorMensal,
         taxaSetup,
@@ -111,6 +111,18 @@ export default function FirstForm() {
     }
   };
 
+  // Função para lidar com a seleção/deseleção dos planos
+  const handlePlanoClick = (plano: string) => {
+    setPlanoSelecionado((prevPlano) => {
+      const novoPlano = prevPlano === plano ? "" : plano;
+      if (novoPlano === "") {
+        setValorCondominio("");
+        setValorGas("");
+      }
+      return novoPlano;
+    });
+  };
+
   return (
     <form className="mt-10" onSubmit={handleSubmit}>
       {/* Select do Tipo de Imóvel */}
@@ -133,7 +145,7 @@ export default function FirstForm() {
       <div className="relative mb-4">
         <input
           type="number"
-          value={valorAluguel ?? ""}
+          value={valorAluguel}
           onChange={(e) => setValorAluguel(e.target.value)}
           placeholder="Valor do Aluguel"
           className="w-full border rounded-2xl p-5 bg-white text-gray-900"
@@ -144,41 +156,20 @@ export default function FirstForm() {
       <div className="relative mb-4">
         <input
           type="number"
-          value={valorIptu ?? ""}
+          value={valorIptu}
           onChange={(e) => setValorIptu(e.target.value)}
           placeholder="Valor do IPTU"
           className="w-full border rounded-2xl p-5 bg-white text-gray-900"
         />
       </div>
 
-      {/* Input do Valor do Condomínio */}
-      <div className="relative mb-4">
-        <input
-          type="number"
-          value={valorCondominio ?? ""}
-          onChange={(e) => setValorCondominio(e.target.value)}
-          placeholder="Valor do Condomínio"
-          className="w-full border rounded-2xl p-5 bg-white text-gray-900"
-        />
-      </div>
-
-      {/* Input do Valor do Gás */}
-      <div className="relative mb-4">
-        <input
-          type="number"
-          value={valorGas ?? ""}
-          onChange={(e) => setValorGas(e.target.value)}
-          placeholder="Valor do Gás"
-          className="w-full border rounded-2xl p-5 bg-white text-gray-900"
-        />
-      </div>
-
       {/* Planos */}
+      {/* Plano 1 */}
       <div
         className={`relative mb-4 border-b border-gray-300 p-4 rounded-xl ${
           planoSelecionado === "Plano 1" ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
-        }`}
-        onClick={() => setPlanoSelecionado("Plano 1")}
+        } cursor-pointer`}
+        onClick={() => handlePlanoClick("Plano 1")}
       >
         <div className="flex items-center justify-between">
           <div>
@@ -199,7 +190,7 @@ export default function FirstForm() {
                 <br />
                 Cobrança Extrajudicial
                 <br />
-                Taxa Setup: R$100,00 {/* Adicione a taxa correta */}
+                Taxa Setup: R$100,00
               </p>
             )}
           </div>
@@ -207,13 +198,38 @@ export default function FirstForm() {
             <ClickSvgIcon className={`${planoSelecionado === "Plano 1" ? "fill-white" : "fill-[#87A644]"}`} />
           </div>
         </div>
+        {/* Campos que aparecem somente quando Plano 1 está selecionado */}
+        {planoSelecionado === "Plano 1" && (
+          <div className="mt-4 space-y-4">
+            {/* Input do Valor do Condomínio */}
+            <input
+              type="text" // Alterado para "text"
+              value={valorCondominio}
+              onChange={(e) => setValorCondominio(e.target.value)}
+              placeholder="Valor do Condomínio"
+              className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()} // Previne a propagação do clique
+            />
+
+            {/* Input do Valor do Gás */}
+            <input
+              type="text" // Alterado para "text"
+              value={valorGas}
+              onChange={(e) => setValorGas(e.target.value)}
+              placeholder="Valor do Gás"
+              className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()} // Previne a propagação do clique
+            />
+          </div>
+        )}
       </div>
 
+      {/* Plano 2 */}
       <div
         className={`relative mb-4 border-b border-gray-300 p-4 rounded-xl ${
           planoSelecionado === "Plano 2" ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
-        }`}
-        onClick={() => setPlanoSelecionado("Plano 2")}
+        } cursor-pointer`}
+        onClick={() => handlePlanoClick("Plano 2")}
       >
         <div className="flex items-center justify-between">
           <div>
@@ -242,13 +258,38 @@ export default function FirstForm() {
             <ClickSvgIcon className={`${planoSelecionado === "Plano 2" ? "fill-white" : "fill-[#87A644]"}`} />
           </div>
         </div>
+        {/* Campos que aparecem somente quando Plano 2 está selecionado */}
+        {planoSelecionado === "Plano 2" && (
+          <div className="mt-4 space-y-4">
+            {/* Input do Valor do Condomínio */}
+            <input
+              type="text" // Alterado para "text"
+              value={valorCondominio}
+              onChange={(e) => setValorCondominio(e.target.value)}
+              placeholder="Valor do Condomínio"
+              className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()} // Previne a propagação do clique
+            />
+
+            {/* Input do Valor do Gás */}
+            <input
+              type="text" // Alterado para "text"
+              value={valorGas}
+              onChange={(e) => setValorGas(e.target.value)}
+              placeholder="Valor do Gás"
+              className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()} // Previne a propagação do clique
+            />
+          </div>
+        )}
       </div>
 
+      {/* Plano 3 */}
       <div
         className={`relative mb-4 border-b border-gray-300 p-4 rounded-xl ${
           planoSelecionado === "Plano 3" ? "bg-[#87A644] text-white" : "bg-white text-gray-900"
-        }`}
-        onClick={() => setPlanoSelecionado("Plano 3")}
+        } cursor-pointer`}
+        onClick={() => handlePlanoClick("Plano 3")}
       >
         <div className="flex items-center justify-between">
           <div>
@@ -275,11 +316,35 @@ export default function FirstForm() {
             <ClickSvgIcon className={`${planoSelecionado === "Plano 3" ? "fill-white" : "fill-[#87A644]"}`} />
           </div>
         </div>
+        {/* Campos que aparecem somente quando Plano 3 está selecionado */}
+        {planoSelecionado === "Plano 3" && (
+          <div className="mt-4 space-y-4">
+            {/* Input do Valor do Condomínio */}
+            <input
+              type="text" // Alterado para "text"
+              value={valorCondominio}
+              onChange={(e) => setValorCondominio(e.target.value)}
+              placeholder="Valor do Condomínio"
+              className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()} // Previne a propagação do clique
+            />
+
+            {/* Input do Valor do Gás */}
+            <input
+              type="text" // Alterado para "text"
+              value={valorGas}
+              onChange={(e) => setValorGas(e.target.value)}
+              placeholder="Valor do Gás"
+              className="w-full border rounded-2xl p-5 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()} // Previne a propagação do clique
+            />
+          </div>
+        )}
       </div>
 
       <div className="text-center mt-6">
         <p className="text-sm text-gray-600">Valor da mensalidade</p>
-        <p className="text-4xl font-bold text-gray-800">R${valorMensal.toFixed(2)}/mês</p>
+        <p className="text-4xl font-bold text-gray-800 max-md:text-3xl">R${valorMensal.toFixed(2)}/mês</p>
         <p className="text-sm text-gray-600 mb-4">{taxaSetup > 0 ? `Taxa de Setup: R$${taxaSetup.toFixed(2)}` : "Sem taxa de setup"}</p>
         <button className="bg-[#87A644] text-white px-6 py-6 rounded-lg hover:bg-green-600 mt-10 w-full" type="submit">
           Faça uma cotação agora!

@@ -7,23 +7,23 @@ async function main() {
   const boards = [
     {
       name: "Início",
-      columns: [{ name: "Coluna 1 - Início" }, { name: "Coluna 2 - Início" }],
+      columns: [{ name: "Início" }, { name: "Início" }],
     },
     {
       name: "Contratos ativos",
-      columns: [{ name: "Coluna 1 - Contratos ativos" }, { name: "Coluna 2 - Contratos ativos" }],
+      columns: [{ name: "Contratos ativos" }, { name: "Contratos ativos" }],
     },
     {
       name: "Cobrança Extrajudicial",
-      columns: [{ name: "Coluna 1 - Cobrança Extrajudicial" }, { name: "Coluna 2 - Cobrança Extrajudicial" }],
+      columns: [{ name: "Cobrança Extrajudicial" }, { name: "Cobrança Extrajudicial" }],
     },
     {
       name: "Cobrança Judicial",
-      columns: [{ name: "Coluna 1 - Cobrança Judicial" }, { name: "Coluna 2 - Cobrança Judicial" }],
+      columns: [{ name: "Cobrança Judicial" }, { name: "Cobrança Judicial" }],
     },
     {
       name: "Contratos inativos",
-      columns: [{ name: "Coluna 1 - Contratos inativos" }, { name: "Coluna 2 - Contratos inativos" }],
+      columns: [{ name: "Contratos inativos" }, { name: "Contratos inativos" }],
     },
   ];
 

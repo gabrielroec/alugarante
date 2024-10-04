@@ -1083,7 +1083,7 @@ export const createBlankCard = async (req: Request, res: Response) => {
           create: {
             tipoImovelSelecionado: "",
             valorAluguel: 0,
-            valorIptu: null,
+            valorIptu: 0,
             valorCondominio: 0,
             valorGas: 0,
             planoSelecionado: "",

@@ -7,13 +7,13 @@ import Image from "next/image";
 const Second = () => {
   return (
     <Fragment>
-      <div className="container shadow-2xl py-20 px-20 pb-0 rounded-3xl relative -top-10 bg-white">
-        <div className="bg-[#E7EDDA] py-20 px-16 rounded-3xl">
-          <h1 className="text-4xl font-bold text-center">
+      <div className="container shadow-2xl py-20 px-20 pb-0 rounded-3xl relative -top-10 bg-white max-md:px-4">
+        <div className="bg-[#E7EDDA] py-20 px-16 rounded-3xl max-md:px-4 max-md:py-8">
+          <h1 className="text-4xl font-bold text-center max-md:text-3xl">
             Plano <span className="text-[#003853">Alu</span>
             <span className="text-[#87A644]">garante</span>
           </h1>
-          <p className="text-center mt-2">Selecione suas opções abaixo</p>
+          <p className="text-center mt-2 max-md:text-base">Selecione suas opções abaixo</p>
           <FirstForm />
         </div>
 
@@ -25,7 +25,7 @@ const Second = () => {
             <div className="text-left w-1/2 max-lg:w-full max-lg:text-center">
               <h1 className="text-4xl font-bold mb-3">
                 Plano <span className="text-[#003853">Alu</span>
-                <span className="text-[#87A644]">garante</span> é diferente de tudo que você já viu!
+                <span className="text-[#87A644] max-md:text-3xl">garante</span> é diferente de tudo que você já viu!
               </h1>
               <p className="text-base mb-6 text-[#0D0D0D]  max-lg:mx-auto">
                 A Alugarante é uma empresa inovadora que redefine a forma como os proprietários garantem a segurança de seus aluguéis.

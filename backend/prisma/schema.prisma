@@ -6,11 +6,35 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+model Anexo {
+  id      Int    @id @default(autoincrement())
+  name    String
+  cardId  Int
+  path    String
+  card    Card   @relation(fields: [cardId], references: [id])
+}
 
 model Board {
   id        Int      @id @default(autoincrement())
   name      String
   columns   Column[] 
+}
+
+model Card {
+  id                    Int         @id @default(autoincrement())
+  columnId              Int
+  column                Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  
+
+  imovel                Imovel?
+  proprietario          Proprietario?
+  imovelDetalhes        ImovelDetalhes?
+  locatario             Locatario?
+
+
+  createdAt             DateTime    @default(now())
+
+  anexos Anexo[] 
 }
 
 model Column {
@@ -25,14 +49,77 @@ model Imovel {
   id                   Int            @id @default(autoincrement())
   tipoImovelSelecionado String
   valorAluguel          Float
-  valorIptu             Float?         
-  valorCondominio       Float
-  valorGas              Float
+  valorIptu             Float         
+  valorCondominio       Float?
+  valorGas              Float?
   planoSelecionado     String
   valorMensal           Float
   taxaSetup             Float
   card                  Card           @relation(fields: [cardId], references: [id])
   cardId                Int @unique
+}
+
+model ImovelDetalhes {
+  id                    Int      @id @default(autoincrement())
+  finalidade            String
+  tipoImovel            String
+  valorAluguel          Float
+  valorCondominio       Float
+  valorIptu             Float?
+  valorAgua             Float?
+  valorGas              Float?
+  administradorNome     String?
+  administradorTelefone String?
+  cepImovel             String
+  cidade                String
+  estado                String
+  bairro                String
+  endereco              String
+  numero                String
+  complemento           String?
+
+
+  anexoCondominio       String?  
+  anexoIptu             String?  
+  anexoAgua             String?  
+  anexoLuz              String?  
+  anexoEscritura        String?  
+
+  card                  Card?    @relation(fields: [cardId], references: [id])
+  cardId                Int      @unique
+}
+
+
+model Locatario {
+  id                    Int      @id @default(autoincrement())
+  tipoPessoa            String
+  nomeCompleto          String
+  email                 String
+  telefone              String
+  nacionalidade         String
+  naturalidade          String
+  estadoCivil           String
+  dataNascimento        DateTime? 
+  cpf                   String?
+  rg                    String?
+  orgaoExpedidor        String?
+  cnpj                  String?
+  razaoSocial           String?
+  cep                   String
+  estado                String
+  bairro                String
+  endereco              String
+  numero                String
+  complemento           String?
+
+  anexoCpfRgMotoristaLocatario   String?
+  anexoEstadoCivilLocatario      String?
+  anexoResidenciaLocatario       String?
+  anexoContratoSocialLocatario   String?
+  anexoUltimoBalancoLocatario    String?
+
+  card                  Card?    @relation(fields: [cardId], references: [id])
+  cardId                Int      @unique
 }
 
 model Proprietario {
@@ -73,97 +160,6 @@ model Proprietario {
   card                      Card   @relation(fields: [cardId], references: [id])
   cardId                    Int @unique
 }
-
-
-
-model ImovelDetalhes {
-  id                    Int      @id @default(autoincrement())
-  finalidade            String
-  tipoImovel            String
-  valorAluguel          Float
-  valorCondominio       Float
-  valorIptu             Float?
-  valorAgua             Float?
-  valorGas              Float?
-  administradorNome     String?
-  administradorTelefone String?
-  cepImovel             String
-  cidade                String
-  estado                String
-  bairro                String
-  endereco              String
-  numero                String
-  complemento           String?
-
-
-  anexoCondominio       String?  
-  anexoIptu             String?  
-  anexoAgua             String?  
-  anexoLuz              String?  
-  anexoEscritura        String?  
-
-  card                  Card?    @relation(fields: [cardId], references: [id])
-  cardId                Int      @unique
-}
-
-model Locatario {
-  id                    Int      @id @default(autoincrement())
-  tipoPessoa            String
-  nomeCompleto          String
-  email                 String
-  telefone              String
-  nacionalidade         String
-  naturalidade          String
-  estadoCivil           String
-  dataNascimento        DateTime? 
-  cpf                   String?
-  rg                    String?
-  orgaoExpedidor        String?
-  cnpj                  String?
-  razaoSocial           String?
-  cep                   String
-  estado                String
-  bairro                String
-  endereco              String
-  numero                String
-  complemento           String?
-
-  anexoCpfRgMotoristaLocatario   String?
-  anexoEstadoCivilLocatario      String?
-  anexoResidenciaLocatario       String?
-  anexoContratoSocialLocatario   String?
-  anexoUltimoBalancoLocatario    String?
-
-  card                  Card?    @relation(fields: [cardId], references: [id])
-  cardId                Int      @unique
-}
-
-
-
-model Card {
-  id                    Int         @id @default(autoincrement())
-  columnId              Int
-  column                Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  
-
-  imovel                Imovel?
-  proprietario          Proprietario?
-  imovelDetalhes        ImovelDetalhes?
-  locatario             Locatario?
-
-
-  createdAt             DateTime    @default(now())
-
-  anexos Anexo[] 
-}
-
-model Anexo {
-  id      Int    @id @default(autoincrement())
-  cardId  Int
-  path    String
-  card    Card   @relation(fields: [cardId], references: [id])
-}
-
 model User {
   id        Int     @id @default(autoincrement())
   nome      String

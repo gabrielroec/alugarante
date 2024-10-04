@@ -246,7 +246,7 @@ const ThirdForm = () => {
   return (
     <Suspense fallback={<div>Carregando formulário...</div>}>
       <LandingPageHeaderForm />
-      <div className="min-h-screen flex flex-col items-center mt-10 ">
+      <div className="min-h-screen flex flex-col items-center mt-10 max-md:px-6">
         <div className="w-full max-w-4xl ">
           <form className="flex flex-wrap gap-4" onSubmit={handleSubmit}>
             {/* Campos de Finalidade e Tipo de Imóvel */}
@@ -285,7 +285,7 @@ const ThirdForm = () => {
             </div>
 
             {/* Campos de valor do aluguel e condomínio */}
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Valor do aluguel</label>
                 <input
@@ -323,7 +323,7 @@ const ThirdForm = () => {
             </div>
 
             {/* Água e Gás */}
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Valor da água</label>
                 <input
@@ -347,7 +347,7 @@ const ThirdForm = () => {
             </div>
 
             {/* Administrador do Condomínio e Telefone */}
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Administrador do Condomínio</label>
                 <input
@@ -385,7 +385,7 @@ const ThirdForm = () => {
             </div>
 
             {/* Cidade e Estado */}
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Cidade</label>
                 <input
@@ -409,7 +409,7 @@ const ThirdForm = () => {
             </div>
 
             {/* Bairro e Endereço */}
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Bairro</label>
                 <input
@@ -433,7 +433,7 @@ const ThirdForm = () => {
             </div>
 
             {/* Número e Complemento */}
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Número</label>
                 <input

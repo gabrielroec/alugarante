@@ -7,9 +7,9 @@ const Third = () => {
     <div className="pt-[100px]  bg-gradient-to-t from-[#F3F6ED] to-[#fff] rounded-[40px]">
       <div className="container flex items-center justify-between max-lg:flex-col">
         <div className="">
-          <h1 className="text-4xl font-bold mb-3 max-lg:text-center">
+          <h1 className="text-4xl font-bold mb-3 max-lg:text-center max-md:text-3xl">
             Como a <span className="text-[#003853">Alu</span>
-            <span className="text-[#87A644]">garante</span> funciona?
+            <span className="text-[#87A644] ">garante</span> funciona?
           </h1>
           <p className="text-base mb-6 text-[#0D0D0D]  max-lg:mx-auto max-w-[600px] max-lg:text-center">
             Com a Alugarante, você contrata diretamente a fiança locatícia sem nenhum custo adicional para você. A contratação é simples e

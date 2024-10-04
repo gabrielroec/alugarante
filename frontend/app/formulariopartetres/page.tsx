@@ -62,6 +62,26 @@ const isValidCNPJ = (cnpj: string): boolean => {
   return true;
 };
 
+// Componente Auxiliar para Anexos
+interface AnexoItemProps {
+  label: string;
+  anexoUrl?: string | null;
+  onClick: () => void;
+}
+
+const AnexoItem: React.FC<AnexoItemProps> = ({ label, anexoUrl, onClick }) => (
+  <p className="flex justify-between items-center mb-2">
+    <strong>{label}</strong>
+    {anexoUrl ? (
+      <Button variant="link" className="text-blue-500 underline" onClick={onClick}>
+        Ver Anexo
+      </Button>
+    ) : (
+      "-"
+    )}
+  </p>
+);
+
 const FourthForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams(); // Para pegar o cardId da URL
@@ -224,6 +244,9 @@ const FourthForm = () => {
       setIsSubmitting(false);
       return;
     }
+
+    // Inicializar um objeto para armazenar erros de validação
+    let hasError = false;
 
     if (isLocatario) {
       // Validação dos campos obrigatórios do locatário
@@ -395,86 +418,81 @@ const FourthForm = () => {
           return;
         }
       }
+    }
 
-      try {
-        const formData = new FormData();
-        formData.append("cardId", cardId.toString());
+    // Se `isLocatario` for falso, não realizamos validações específicas do locatário
+    // Mas ainda assim adicionamos os campos do locatário como vazios
 
-        // Adicionar dados do locatário
-        formData.append("tipoPessoa", isLocatarioPessoaJuridica ? "Jurídica" : "Física");
-        formData.append("nomeCompleto", locatarioNomeCompleto);
-        formData.append("email", locatarioEmail);
-        formData.append("telefone", locatarioTelefone);
-        formData.append("nacionalidade", locatarioNacionalidade);
-        formData.append("naturalidade", locatarioNaturalidade);
-        formData.append("estadoCivil", locatarioEstadoCivil);
-        formData.append("dataNascimento", locatarioDataNascimento);
-        formData.append("cpf", locatarioCpf || "");
-        formData.append("rg", locatarioRg || "");
-        formData.append("orgaoExpedidor", locatarioOrgaoExpedidor || "");
-        formData.append("cnpj", locatarioCnpj || "");
-        formData.append("razaoSocial", locatarioRazaoSocial || "");
-        formData.append("cep", locatarioCep);
-        formData.append("estado", locatarioEstado);
-        formData.append("bairro", locatarioBairro);
-        formData.append("endereco", locatarioEndereco);
-        formData.append("numero", locatarioNumero);
-        formData.append("complemento", locatarioComplemento || "");
-        formData.append("cidade", locatarioCidade);
+    try {
+      const formData = new FormData();
+      formData.append("cardId", cardId.toString());
 
-        // Adiciona os arquivos obrigatórios
-        if (anexoCpfRgMotoristaLocatario) {
-          formData.append("anexoCpfRgMotoristaLocatario", anexoCpfRgMotoristaLocatario);
-        }
-        if (anexoEstadoCivilLocatario) {
-          formData.append("anexoEstadoCivilLocatario", anexoEstadoCivilLocatario);
-        }
-        if (anexoResidenciaLocatario) {
-          formData.append("anexoResidenciaLocatario", anexoResidenciaLocatario);
-        }
+      // Adicionar dados do locatário
+      formData.append("tipoPessoa", isLocatarioPessoaJuridica ? "Jurídica" : "Física");
+      formData.append("nomeCompleto", isLocatario ? locatarioNomeCompleto : "");
+      formData.append("email", isLocatario ? locatarioEmail : "");
+      formData.append("telefone", isLocatario ? locatarioTelefone : "");
+      formData.append("nacionalidade", isLocatario ? locatarioNacionalidade : "");
+      formData.append("naturalidade", isLocatario ? locatarioNaturalidade : "");
+      formData.append("estadoCivil", isLocatario ? locatarioEstadoCivil : "");
+      formData.append("dataNascimento", isLocatario ? locatarioDataNascimento : "");
+      formData.append("cpf", isLocatario && !isLocatarioPessoaJuridica ? locatarioCpf : "");
+      formData.append("rg", isLocatario && !isLocatarioPessoaJuridica ? locatarioRg : "");
+      formData.append("orgaoExpedidor", isLocatario && !isLocatarioPessoaJuridica ? locatarioOrgaoExpedidor : "");
+      formData.append("cnpj", isLocatario && isLocatarioPessoaJuridica ? locatarioCnpj : "");
+      formData.append("razaoSocial", isLocatario && isLocatarioPessoaJuridica ? locatarioRazaoSocial : "");
+      formData.append("cep", isLocatario ? locatarioCep : "");
+      formData.append("estado", isLocatario ? locatarioEstado : "");
+      formData.append("bairro", isLocatario ? locatarioBairro : "");
+      formData.append("endereco", isLocatario ? locatarioEndereco : "");
+      formData.append("numero", isLocatario ? locatarioNumero : "");
+      formData.append("complemento", isLocatario ? locatarioComplemento : "");
+      formData.append("cidade", isLocatario ? locatarioCidade : "");
 
-        if (isLocatarioPessoaJuridica) {
-          if (anexoContratoSocialLocatario) {
-            formData.append("anexoContratoSocialLocatario", anexoContratoSocialLocatario);
-          }
-          if (anexoUltimoBalancoLocatario) {
-            formData.append("anexoUltimoBalancoLocatario", anexoUltimoBalancoLocatario);
-          }
-        }
+      // Adicionar os arquivos obrigatórios
+      formData.append(
+        "anexoCpfRgMotoristaLocatario",
+        isLocatario && anexoCpfRgMotoristaLocatario ? anexoCpfRgMotoristaLocatario : new File([], "")
+      );
+      formData.append("anexoEstadoCivilLocatario", isLocatario && anexoEstadoCivilLocatario ? anexoEstadoCivilLocatario : new File([], ""));
+      formData.append("anexoResidenciaLocatario", isLocatario && anexoResidenciaLocatario ? anexoResidenciaLocatario : new File([], ""));
 
-        // Enviar os dados para a rota do backend
-        const response = await api.post("/saveLocatarioToCard", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        // Exibir toast de sucesso
-        toast({
-          title: "Formulário enviado",
-          description: "Os dados foram salvos com sucesso.",
-          variant: "default",
-        });
-
-        // Redirecionar para a página inicial ou próxima etapa
-        setTimeout(() => {
-          router.push(`/`);
-        }, 100);
-      } catch (error) {
-        console.error("Erro ao enviar os dados:", error);
-        toast({
-          title: "Erro no envio",
-          description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSubmitting(false); // Finaliza a submissão
+      if (isLocatario && isLocatarioPessoaJuridica) {
+        formData.append("anexoContratoSocialLocatario", anexoContratoSocialLocatario || new File([], ""));
+        formData.append("anexoUltimoBalancoLocatario", anexoUltimoBalancoLocatario || new File([], ""));
+      } else {
+        // Mesmo que não seja pessoa jurídica, adicionar campos vazios para manter consistência
+        formData.append("anexoContratoSocialLocatario", new File([], ""));
+        formData.append("anexoUltimoBalancoLocatario", new File([], ""));
       }
-    } else {
-      // Se não tiver os dados do locatário, apenas redireciona ou toma outra ação
-      // Por exemplo, redirecionar para a página inicial
-      router.push(`/`);
-      setIsSubmitting(false);
+
+      // Enviar os dados para a rota do backend
+      const response = await api.post("/saveLocatarioToCard", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Exibir toast de sucesso
+      toast({
+        title: "Formulário enviado",
+        description: "Os dados foram salvos com sucesso.",
+        variant: "default",
+      });
+
+      // Redirecionar para a página inicial ou próxima etapa
+      setTimeout(() => {
+        router.push(`/`);
+      }, 100);
+    } catch (error) {
+      console.error("Erro ao enviar os dados:", error);
+      toast({
+        title: "Erro no envio",
+        description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false); // Finaliza a submissão
     }
   };
 
@@ -642,7 +660,7 @@ const FourthForm = () => {
                       value={locatarioDataNascimento}
                       onChange={(e) => setLocatarioDataNascimento(e.target.value)} // Certifique-se de que o valor seja uma string de data
                     />
-                    <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span>
+                    {/* <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span> */}
                   </div>
                 </div>
 

@@ -436,7 +436,7 @@ const SecondForm = () => {
   return (
     <Suspense fallback={<div>Carregando formulário...</div>}>
       <LandingPageHeaderForm />
-      <div className="min-h-screen flex flex-col items-center mt-10 ">
+      <div className="min-h-screen flex flex-col items-center mt-10 max-md:px-6">
         <div className="w-full max-w-4xl ">
           <form className="flex flex-wrap gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col w-full">
@@ -457,7 +457,7 @@ const SecondForm = () => {
             </div>
 
             {isPessoaJuridica && (
-              <div className="flex w-full gap-4">
+              <div className="flex w-full gap-4 max-md:flex-col">
                 <div className="w-full">
                   <label className="block mb-2">CNPJ</label>
                   <input
@@ -578,7 +578,7 @@ const SecondForm = () => {
                     value={dataNascimentoConjuge}
                     onChange={(e) => setDataNascimentoConjuge(e.target.value)}
                   />
-                  <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span>
+                  {/* <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span> */}
                 </div>
               </>
             )}
@@ -605,7 +605,7 @@ const SecondForm = () => {
               />
             </div>
 
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Nacionalidade</label>
                 <input
@@ -629,7 +629,7 @@ const SecondForm = () => {
               </div>
             </div>
 
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Estado Civil</label>
                 <div className="relative">
@@ -657,11 +657,11 @@ const SecondForm = () => {
                   value={dataNascimento}
                   onChange={(e) => setDataNascimento(e.target.value)}
                 />
-                <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span>
+                {/* <span className="text-xs text-gray-400">Coloque a data no formato Mês/Dia/Ano</span> */}
               </div>
             </div>
 
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">CPF</label>
                 <input
@@ -696,7 +696,7 @@ const SecondForm = () => {
               </div>
             </div>
 
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">CEP</label>
                 <input
@@ -720,7 +720,7 @@ const SecondForm = () => {
               </div>
             </div>
 
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Bairro</label>
                 <input
@@ -744,7 +744,7 @@ const SecondForm = () => {
               </div>
             </div>
 
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 max-md:flex-col">
               <div className="w-full">
                 <label className="block mb-2">Número</label>
                 <input
