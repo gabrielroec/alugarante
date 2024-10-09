@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 // Configurando CORS para permitir requisições do frontend e do localhost:3000
 app.use(
   cors({
-    origin: ["https://alugarante.vercel.app", "http://localhost:3000"], // Adicionando múltiplas origens
+    origin: "*",
     credentials: true,
   })
 );
