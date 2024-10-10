@@ -1251,6 +1251,7 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
+// controllers/kanbanControllers.ts
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, senha } = req.body;
@@ -1295,19 +1296,13 @@ export const login = async (req: Request, res: Response) => {
       expiresIn: "1d",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000, // 1 dia
-    });
-
     const { senha: _, ...userData } = user;
 
     return res.status(200).json({
       message: "Login realizado com sucesso.",
       success: true,
       user: userData,
+      token,
     });
   } catch (error) {
     console.error("Ocorreu um erro ao fazer login.", error);
@@ -1320,21 +1315,27 @@ export const login = async (req: Request, res: Response) => {
 
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user.userId; // Obtido pelo middleware de autenticação
+    const userId = req.user.userId;
 
     const user = await prisma.user.findUnique({
-      where: { id: Number(userId) },
-      select: { id: true, nome: true, foto: true }, // Seleciona apenas os campos necessários
+      where: { id: userId },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        foto: true,
+        isAdmin: true,
+      },
     });
 
     if (!user) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
+      return res.status(404).json({ message: "Usuário não encontrado.", success: false });
     }
 
-    res.json(user);
+    res.status(200).json(user);
   } catch (error) {
-    console.error("Erro ao obter usuário:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    console.error("Erro ao obter usuário atual:", error);
+    res.status(500).json({ message: "Erro interno do servidor.", success: false });
   }
 };
 export const deleteColumn = async (req: Request, res: Response) => {

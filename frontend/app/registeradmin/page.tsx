@@ -1,4 +1,6 @@
+// pages/registeradmin.tsx
 "use client";
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -9,8 +11,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RegisterUser = () => {
+  const { toast } = useToast();
+  const { user } = useAuth(); // Opcional: para verificar se o usuário é admin
   const [showPassword, setShowPassword] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -18,9 +24,8 @@ const RegisterUser = () => {
   const [senha, setSenha] = useState("");
   const [isAdmin, setIsAdmin] = useState("não");
   const [foto, setFoto] = useState<File | null>(null);
-  const { toast } = useToast();
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!nome || !telefone || !email || !senha || !foto || !isAdmin) {
@@ -31,6 +36,8 @@ const RegisterUser = () => {
       });
       return;
     }
+
+    // Validações adicionais podem ser adicionadas aqui
 
     const formData = new FormData();
     formData.append("nome", nome);
@@ -49,7 +56,13 @@ const RegisterUser = () => {
         description: "Conta criada com sucesso.",
       });
 
-      // Redirecionar ou limpar o formulário
+      // Opcional: Redirecionar ou limpar o formulário
+      setNome("");
+      setTelefone("");
+      setEmail("");
+      setSenha("");
+      setIsAdmin("não");
+      setFoto(null);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -60,110 +73,118 @@ const RegisterUser = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F9FAF5]">
-      <div className="w-full max-w-lg px-8 py-[100px] space-y-6 bg-white rounded-lg shadow-lg">
-        <div className="text-center mb-10">
-          <Image src={logo} alt="Logo" className="mx-auto mb-10 h-12" />
-          <h2 className="text-2xl font-bold">Registro.</h2>
-          <p className="mt-2 text-sm text-gray-600">Crie uma conta para acessar o dashboard!</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
-          <div>
-            <Label htmlFor="nome" className="block text-sm font-medium text-gray-700">
-              Nome
-            </Label>
-            <Input id="nome" type="text" placeholder="Digite o seu nome completo" value={nome} onChange={(e) => setNome(e.target.value)} />
+    <ProtectedRoute requireAdmin>
+      <div className="flex min-h-screen items-center justify-center bg-[#F9FAF5]">
+        <div className="w-full max-w-lg px-8 py-[100px] space-y-6 bg-white rounded-lg shadow-lg">
+          <div className="text-center mb-10">
+            <Image src={logo} alt="Logo" className="mx-auto mb-10 h-12" />
+            <h2 className="text-2xl font-bold">Registro.</h2>
+            <p className="mt-2 text-sm text-gray-600">Crie uma conta para acessar o dashboard!</p>
           </div>
 
-          <div>
-            <Label htmlFor="telefone" className="block text-sm font-medium text-gray-700">
-              Telefone
-            </Label>
-            <Input
-              id="telefone"
-              type="text"
-              placeholder="Digite o seu telefone"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </Label>
-            <Input id="email" type="email" placeholder="Digite o seu email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-
-          <div className="relative">
-            <Label htmlFor="senha" className="block text-sm font-medium text-gray-700">
-              Senha
-            </Label>
-            <Input
-              id="senha"
-              type={showPassword ? "text" : "password"}
-              placeholder="Digite sua senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-            />
-            <div
-              className="absolute top-[30px] right-0 pr-3 flex items-center cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
+            <div>
+              <Label htmlFor="nome" className="block text-sm font-medium text-gray-700">
+                Nome
+              </Label>
+              <Input
+                id="nome"
+                type="text"
+                placeholder="Digite o seu nome completo"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
             </div>
-          </div>
 
-          <div>
-            <Label htmlFor="isAdmin" className="block text-sm font-medium text-gray-700">
-              É administrador?
-            </Label>
-            <select
-              id="isAdmin"
-              value={isAdmin}
-              onChange={(e) => setIsAdmin(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-900 focus:ring focus:ring-blue-900 focus:ring-opacity-50"
-            >
-              <option value="não">Não</option>
-              <option value="sim">Sim</option>
-            </select>
-          </div>
+            <div>
+              <Label htmlFor="telefone" className="block text-sm font-medium text-gray-700">
+                Telefone
+              </Label>
+              <Input
+                id="telefone"
+                type="text"
+                placeholder="Digite o seu telefone"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="foto" className="block text-sm font-medium text-gray-700">
-              Foto
-            </Label>
-            <input
-              id="foto"
-              name="foto"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                  console.log("Arquivo selecionado:", files[0]);
-                  setFoto(files[0]);
-                }
-              }}
-            />
-          </div>
+            <div>
+              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </Label>
+              <Input id="email" type="email" placeholder="Digite o seu email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
 
-          <Button type="submit" className="w-full py-8 mt-4 text-white bg-blue-900 rounded-lg">
-            Registrar
-          </Button>
+            <div className="relative">
+              <Label htmlFor="senha" className="block text-sm font-medium text-gray-700">
+                Senha
+              </Label>
+              <Input
+                id="senha"
+                type={showPassword ? "text" : "password"}
+                placeholder="Digite sua senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+              />
+              <div
+                className="absolute top-[30px] right-0 pr-3 flex items-center cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </div>
+            </div>
 
-          <div className="flex justify-center">
-            <p className="text-sm text-gray-600">
-              Já tem uma conta?{" "}
-              <Link href="/loginadmin" className="text-blue-900 hover:underline">
-                Faça login
-              </Link>
-            </p>
-          </div>
-        </form>
+            <div>
+              <Label htmlFor="isAdmin" className="block text-sm font-medium text-gray-700">
+                É administrador?
+              </Label>
+              <select
+                id="isAdmin"
+                value={isAdmin}
+                onChange={(e) => setIsAdmin(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-900 focus:ring focus:ring-blue-900 focus:ring-opacity-50"
+              >
+                <option value="não">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
+
+            <div>
+              <Label htmlFor="foto" className="block text-sm font-medium text-gray-700">
+                Foto
+              </Label>
+              <input
+                id="foto"
+                name="foto"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files && files.length > 0) {
+                    console.log("Arquivo selecionado:", files[0]);
+                    setFoto(files[0]);
+                  }
+                }}
+              />
+            </div>
+
+            <Button type="submit" className="w-full py-8 mt-4 text-white bg-blue-900 rounded-lg">
+              Registrar
+            </Button>
+
+            <div className="flex justify-center">
+              <p className="text-sm text-gray-600">
+                Já tem uma conta?{" "}
+                <Link href="/loginadmin" className="text-blue-900 hover:underline">
+                  Faça login
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

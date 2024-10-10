@@ -7,6 +7,9 @@ import ProfileFoto from "@/assets/profile-foto.png";
 import { fetchBoards, fetchBoardById } from "@/redux/boardSlice";
 import { RootState, AppDispatch } from "@/redux/store";
 import { Button } from "./ui/button";
+import { useAuth } from "@/contexts/AuthContext"; // Importação do contexto de autenticação
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 const Header: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -14,6 +17,9 @@ const Header: React.FC = () => {
 
   // State para controlar o valor do board selecionado
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
+
+  // Extrair dados do usuário do contexto de autenticação
+  const { user, loading: authLoading } = useAuth();
 
   // Carregar os boards ao montar o componente
   useEffect(() => {
@@ -36,22 +42,37 @@ const Header: React.FC = () => {
     console.log("Board selecionado:", boardId);
   };
 
+  // Função para obter a URL completa da foto do usuário
+  const getUserPhoto = () => {
+    if (authLoading) {
+      return <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>;
+    }
+    if (user?.foto) {
+      // Substitua as barras invertidas por barras normais e adicione a URL base do backend
+      const formattedFoto = `${BACKEND_URL}/${user.foto.replace(/\\/g, "/")}`;
+      return <Image src={formattedFoto} alt="Profile Foto" width={32} height={32} className="rounded-full object-cover" />;
+    }
+    return <Image src={ProfileFoto} alt="Profile Foto" width={32} height={32} className="rounded-full object-cover" />;
+  };
+
   return (
-    <header className="flex justify-between items-center bg-white flex-col border-b border-[f5f5f5]">
-      <div className="flex items-center justify-between w-full py-8 border-b border-[F5F5F5] px-10">
-        <p className="text-gray-600">Bem-vindo, Marco!</p>
-        <div className="ml-4">
-          <Image src={ProfileFoto} alt="Profile Foto" width={32} height={32} className="rounded-full" />
-        </div>
+    <header className="flex flex-col border-b border-[#f5f5f5] bg-white">
+      {/* Topo do Header: Nome e Foto do Usuário */}
+      <div className="flex items-center justify-between w-full py-4 px-10">
+        {/* Exibir o nome do usuário ou um placeholder durante o carregamento */}
+        <p className="text-gray-600">{authLoading ? "Carregando usuário..." : `Bem-vindo, ${user?.nome || "Usuário"}!`}</p>
+        {/* Exibir a foto do usuário ou uma foto padrão */}
+        <div className="ml-4">{getUserPhoto()}</div>
       </div>
 
-      <div className="flex items-center justify-between w-full py-8">
+      {/* Seção de Seleção de Board e Pesquisa */}
+      <div className="flex items-center justify-between w-full py-4 px-10">
         {loading ? (
-          <p>Carregando...</p>
+          <p>Carregando boards...</p>
         ) : error ? (
           <p>Erro: {error}</p>
         ) : (
-          <div className="px-10">
+          <div className="w-[15%]">
             <Select value={selectedBoardId || ""} onValueChange={handleBoardChange}>
               <SelectTrigger className="text-lg font-semibold bg-transparent border-none outline-none cursor-pointer">
                 <SelectValue placeholder="Selecione um board" />
@@ -66,7 +87,7 @@ const Header: React.FC = () => {
             </Select>
           </div>
         )}
-        <div className="px-10 w-full flex items-center">
+        <div className="w-full flex items-center">
           <input type="text" placeholder="Pesquisar..." className="px-4 py-2 border rounded-lg text-gray-700 focus:outline-none w-full" />
           <Button className="ml-4 px-4 py-2 bg-[#87A644] text-white rounded-lg">Filtrar</Button>
         </div>

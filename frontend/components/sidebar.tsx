@@ -11,7 +11,7 @@ const Sidebar = () => {
       <nav className="mt-8">
         <ul>
           <li>
-            <Link href="/dashboards" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+            <Link href="/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
               Início
             </Link>
           </li>

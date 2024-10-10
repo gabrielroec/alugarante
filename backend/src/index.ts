@@ -1,3 +1,4 @@
+// index.ts
 import express from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
@@ -10,11 +11,11 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
-// Configurando CORS para permitir requisições do frontend e do localhost:3000
+// Configurando CORS para permitir requisições do frontend
 app.use(
   cors({
-    origin: "*",
-    credentials: true,
+    origin: process.env.FRONTEND_URL || "http://localhost:3000", // Defina o URL do seu frontend
+    credentials: true, // Permite o envio de cookies
   })
 );
 
@@ -28,7 +29,8 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api", kanbanRoutes);
 
 // Conectando ao Prisma e inicializando o servidor
-app.listen(5000, async () => {
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, async () => {
   try {
     await prisma.$connect();
     console.log("Conectado ao banco de dados");
@@ -36,5 +38,5 @@ app.listen(5000, async () => {
     console.error("Falha ao conectar ao banco de dados", error);
   }
 
-  console.log("Servidor rodando na porta 5000");
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

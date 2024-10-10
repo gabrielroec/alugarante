@@ -9,15 +9,17 @@ import api from "@/services/api";
 import { EyeOff, Eye } from "lucide-react";
 import Image from "next/image";
 import logo from "../../assets/logo.svg";
+import { useAuth } from "@/contexts/AuthContext"; // Importação do contexto de autenticação
 
-const LoginAdmin = () => {
+const LoginAdmin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState(""); // Altere para 'senha' para corresponder ao backend
   const { toast } = useToast();
   const router = useRouter(); // Uso correto do useRouter
+  const { login } = useAuth(); // Função de login do contexto de autenticação
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!email || !senha) {
@@ -33,18 +35,21 @@ const LoginAdmin = () => {
       const response = await api.post("/users/login", { email, senha });
       const { token, user } = response.data;
 
-      // Armazene o token e os dados do usuário no localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      if (token && user) {
+        // Utilize a função de login do contexto para armazenar o token e o usuário
+        login(token, user);
 
-      toast({
-        variant: "default",
-        title: "Sucesso!",
-        description: "Login realizado com sucesso.",
-      });
+        toast({
+          variant: "default",
+          title: "Sucesso!",
+          description: "Login realizado com sucesso.",
+        });
 
-      // Redirecionar para o dashboard ou outra página protegida
-      router.push("/dashboard");
+        // Redirecionar para o dashboard ou outra página protegida
+        router.push("/dashboard");
+      } else {
+        throw new Error("Resposta inválida do servidor.");
+      }
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
       toast({
@@ -76,7 +81,8 @@ const LoginAdmin = () => {
               placeholder="Digite o seu email aqui"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input-class" // Substitua por suas classes de estilo
+              className="border w-full p-2 rounded-sm" // Substitua por suas classes de estilo
+              required
             />
           </div>
 
@@ -91,7 +97,8 @@ const LoginAdmin = () => {
               placeholder="Digite sua senha aqui"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="input-class" // Substitua por suas classes de estilo
+              className="border w-full p-2 rounded-sm" // Substitua por suas classes de estilo
+              required
             />
             <div
               className="absolute top-[30px] right-0 pr-3 flex items-center cursor-pointer"
@@ -102,7 +109,7 @@ const LoginAdmin = () => {
           </div>
 
           <div className="flex justify-end !mt-0">
-            <Link href="#" className="text-sm text-gray-400 hover:underline">
+            <Link href="/forgotpassword" className="text-sm text-gray-400 hover:underline">
               Esqueci a minha senha
             </Link>
           </div>
