@@ -160,7 +160,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
     const currentColumnIndex = columns.findIndex((col) => col.name === columnName);
 
     if (index <= currentColumnIndex) {
-      return "bg-[url('../assets/arrow-bg.svg')] bg-center bg-no-repeat bg-contain";
+      return "bg-[url('../assets/arrow-bg.svg')] bg-right bg-no-repeat bg-cover";
     }
     return "text-[#ccc]";
   };
@@ -623,7 +623,12 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
             <div className="flex items-center gap-4">
               {columns &&
                 columns.map((col: Column, index: number) => (
-                  <div key={col.id} className={`p-2 rounded-lg text-white px-5 ${getColumnBackground(index)}`}>
+                  <div
+                    key={col.id}
+                    className={`w-fit min-w-[100px] px-4 h-[40px]  text-white flex items-center justify-center ${getColumnBackground(
+                      index
+                    )}`}
+                  >
                     {col.name}
                   </div>
                 ))}

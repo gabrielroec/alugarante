@@ -15,7 +15,7 @@ const PipelinesPage = () => {
       <div className="flex h-screen">
         <Sidebar />
         <KanbanProvider>
-          <div className="flex flex-col w-[80%]">
+          <div className="flex flex-col w-[80%] max-lg:w-[75%]">
             <Header />
             <div className="flex-1 overflow-auto p-6">
               <DndProvider backend={HTML5Backend}>

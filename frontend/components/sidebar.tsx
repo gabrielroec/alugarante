@@ -18,7 +18,7 @@ const Sidebar = () => {
   }, []);
 
   return (
-    <div className="w-[20%] h-screen bg-white border-r border-[f5f5f5]">
+    <div className="w-[20%] max-lg:w-[25%] h-screen bg-white border-r border-[f5f5f5]">
       <div className="p-4">
         <Image src={logo} alt="Alugarante Logo" width={150} height={50} />
       </div>
