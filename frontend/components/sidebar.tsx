@@ -43,13 +43,25 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/clients"
-              className={`flex items-center gap-2  text-gray-700 ${currentPath === "/clients" ? "bg-[#D4E0C9]" : "hover:bg-[#E7EDDA]"}`}
+              href="/clientes"
+              className={`flex items-center gap-2 rounded-md text-gray-700 ${
+                currentPath === "/clientes" ? "bg-[#D4E0C9]" : "hover:bg-[#E7EDDA]"
+              }`}
             >
-              <div className="flex items-center justify-center bg-[#F5F5F5] rounded-md p-3">
-                <Image src={clientsIcon} alt="Clientes" width={20} height={20} />
+              <div
+                className={`flex items-center justify-center  rounded-md p-3 ${
+                  currentPath === "/clientes" ? "bg-[#87A644]" : "bg-[#F5F5F5]"
+                }`}
+              >
+                <Image
+                  src={clientsIcon}
+                  alt="Clientes"
+                  width={20}
+                  height={20}
+                  className={`${currentPath === "/clientes" ? "brightness-200" : ""}`}
+                />
               </div>
-              Lista de Clientes
+              <p className={`${currentPath === "/clientes" ? "text-[#87A644]" : ""}`}>Lista de clientes</p>
             </Link>
           </li>
         </ul>
