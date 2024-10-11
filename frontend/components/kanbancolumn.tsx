@@ -9,6 +9,9 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, Dialo
 import { Input } from "./ui/input";
 import api from "@/services/api";
 import { Textarea } from "./ui/textarea";
+import deleteCardIcon from "../assets/delete-card.svg";
+import Image from "next/image";
+import editColumnIcon from "../assets/editColumn.svg";
 
 interface Column {
   id: number;
@@ -81,12 +84,14 @@ const KanbanColumn = ({
         <div className="flex items-center justify-between mb-5">
           <p>{column.name}</p>
           <p className="ml-[20px] text-[#D9D9D9]">Total: {column.cards?.length || 0}</p>
-          <Button className="ml-[20px] bg-[#87A644]" onClick={() => setIsEditDialogOpen(true)}>
-            Editar nome
-          </Button>
-          <Button className="ml-[10px] bg-red-500" onClick={() => onDeleteColumn(column.id)}>
-            Deletar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="bg-transparent hover:bg-transparent p-0" onClick={() => setIsEditDialogOpen(true)}>
+              <Image src={editColumnIcon} alt="Editar coluna" width={40} height={40} />
+            </Button>
+            <Button className=" bg-transparent hover:bg-transparent p-0" onClick={() => onDeleteColumn(column.id)}>
+              <Image src={deleteCardIcon} alt="Deletar coluna" width={40} height={40} />
+            </Button>
+          </div>
         </div>
 
         {column.cards.map((card) => (

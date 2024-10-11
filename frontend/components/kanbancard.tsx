@@ -2316,7 +2316,7 @@ const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(({ card, boardId,
           </DialogContent>
         </Dialog>
 
-        <Button variant="destructive" className="p-0 m-0 bg-white hover:bg-white ml-4" onClick={() => setIsDeleteDialogOpen(true)}>
+        <Button variant="destructive" className="p-0 m-0 bg-white hover:bg-white ml-2" onClick={() => setIsDeleteDialogOpen(true)}>
           <Image src={deleteCardIcon} alt="Deletar" className="p-0 m-0" />
         </Button>
       </div>

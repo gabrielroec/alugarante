@@ -57,11 +57,9 @@ const Header: React.FC = () => {
 
   return (
     <header className="flex flex-col border-b border-[#f5f5f5] bg-white">
-      {/* Topo do Header: Nome e Foto do Usuário */}
       <div className="flex items-center justify-between w-full py-4 px-10">
-        {/* Exibir o nome do usuário ou um placeholder durante o carregamento */}
         <p className="text-gray-600">{authLoading ? "Carregando usuário..." : `Bem-vindo, ${user?.nome || "Usuário"}!`}</p>
-        {/* Exibir a foto do usuário ou uma foto padrão */}
+
         <div className="ml-4">{getUserPhoto()}</div>
       </div>
 
